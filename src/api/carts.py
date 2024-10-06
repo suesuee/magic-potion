@@ -110,7 +110,15 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
         return {"message": "Cart not found"}, 404
 
     cart = cart_dict[cart_id]
-    cart[item_sku] = cart_item.quantity
+    
+# How it's gonna work
+#     cart_dict = {
+#     1: {
+#         "RED_POTION_0": 2,
+#         "GREEN_POTION_0": 3
+#     }
+# }
+
 
     # Fetch potion quantities from global_inventory
     with db.engine.begin() as connection:
@@ -123,12 +131,16 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     
     # Check if the quantity added is within available stock
     if item_sku == "RED_POTION_0" and cart_item.quantity <= cur_num_red_potions:
+        cart[item_sku] = cart_item.quantity
         return {"message": "Potion added to cart", "quantity": cart_item.quantity}
     elif item_sku == "GREEN_POTION_0" and cart_item.quantity <= cur_num_green_potions:
+        cart[item_sku] = cart_item.quantity
         return {"message": "Potion added to cart", "quantity": cart_item.quantity}
     elif item_sku == "BLUE_POTION_0" and cart_item.quantity <= cur_num_blue_potions:
+        cart[item_sku] = cart_item.quantity
         return {"message": "Potion added to cart", "quantity": cart_item.quantity}
     elif item_sku == "DARK_POTION_0" and cart_item.quantity <= cur_num_dark_potions:
+        cart[item_sku] = cart_item.quantity
         return {"message": "Potion added to cart", "quantity": cart_item.quantity}
     else:
         return {"message": "Failure. Don't add more than available stock."}
