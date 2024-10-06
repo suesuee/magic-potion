@@ -84,16 +84,18 @@ def post_visits(visit_id: int, customers: list[Customer]):
     """
     print(customers)
 
-    return "OK"
+    return {'message:':f"customer who visited {customers.name}"}
 
 
 @router.post("/")
 def create_cart(new_cart: Customer):
     """ Create a cart to store the quantity"""
+
     global cart_id
     cart_id += 1
-    cart_dict[cart_id] = 0
-    return {"cart_id": cart_id}
+    cart_dict[cart_id] = {}
+    print(new_cart.customer_name, new_cart.character_class)
+    return {"cart_id": cart_id, "customer Name:" new_cart.customer_name, "character_class:" new_cart.character_class}
 
 
 class CartItem(BaseModel):
@@ -106,21 +108,57 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     
     if cart_id not in cart_dict:
         return {"message": "Cart not found"}, 404
-    
+
+    cart = cart_dict[cart_id]
+    cart[item_sku] = cart_item.quantity
+
+    # Fetch potion quantities from global_inventory
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(
-            "SELECT num_green_potions FROM global_inventory WHERE id = 1"
+            "SELECT num_red_potions, num_green_potions, num_blue_potions, num_dark_potions FROM global_inventory"
         ))
         row = result.fetchone()
         if row:
-            cur_num_green_potions = row[0]
-
-    # Check the # of items customer added to cart is not more than available potions in the inventory
-    if cart_item.quantity <= cur_num_green_potions:
-        cart_dict[cart_id] = cart_item.quantity
-        return {"message": "OK. Potion added.", "cart_id": {cart_id}, "quantity": {cart_item.quantity}}
+            cur_num_red_potions, cur_num_green_potions, cur_num_blue_potions, cur_num_dark_potions = row
+    
+    # Check if the quantity added is within available stock
+    if item_sku == "RED_POTION_0" and cart_item.quantity <= cur_num_red_potions:
+        return {"message": "Potion added to cart", "quantity": cart_item.quantity}
+    elif item_sku == "GREEN_POTION_0" and cart_item.quantity <= cur_num_green_potions:
+        return {"message": "Potion added to cart", "quantity": cart_item.quantity}
+    elif item_sku == "BLUE_POTION_0" and cart_item.quantity <= cur_num_blue_potions:
+        return {"message": "Potion added to cart", "quantity": cart_item.quantity}
+    elif item_sku == "DARK_POTION_0" and cart_item.quantity <= cur_num_dark_potions:
+        return {"message": "Potion added to cart", "quantity": cart_item.quantity}
     else:
-        return {"Message": "Failure. Don't add more than we have!", "Current green potions available:" : {cur_num_green_potions}}
+        return {"message": "Failure. Don't add more than available stock."}
+    
+    # with db.engine.begin() as connection:
+    #     result = connection.execute(sqlalchemy.text(
+    #         "SELECT num_red_potions, num_green_potions, num_blue_potions, num_dark_potions FROM global_inventory"
+    #     ))
+    #     row = result.fetchone()
+    #     if row:
+
+    #         cur_num_red_potions = row[0]
+    #         cur_num_green_potions = row[1]
+    #         cur_num_blue_potions = row[2]
+    #         cur_num_dark_potions = row[3]
+
+    # # Check the # of items customer added to cart is not more than available potions in the inventory
+    # if cart_item.quantity <= cur_num_red_potions:
+    #     cart_dict[cart_id] = cart_item.quantity
+    # elif cart_item.quantity <= cur_num_green_potions:
+    #     cart_dict[cart_id] = cart_item.quantity
+    # elif cart_item.quantity <= cur_num_blue_potions:
+    #     cart_dict[cart_id] = cart_item.quantity
+    # elif cart_item.quantity <= cur_num_dark_potions:
+    #     cart_dict[cart_id] = cart_item.quantity
+
+    #     # can't use f formatting string here in JSON
+    #     return {"message": "Success", "total_potions_bought": quantity, "total_gold_paid": price}
+    # else:
+    #     return {"Message": "Failure. Don't add more than we have!", "Current green potions available:" : cur_num_green_potions}
 
 class CartCheckout(BaseModel):
     payment: str
@@ -132,33 +170,64 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     if cart_id not in cart_dict:
         return {"message": "Cart not found"}, 404
     
-    quantity = cart_dict[cart_id]
-    price = quantity * 50
+    cart = cart_dict[cart_id]
+    total_potions_bought = 0
+    total_price = 0
 
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(
-            "SELECT num_green_potions, gold FROM global_inventory WHERE id = 1"
+            "SELECT num_red_potions, num_green_potions, num_blue_potions, num_dark_potions, gold FROM global_inventory"
         ))
 
         row = result.fetchone()
         if row:  # Ensure that the row is not None
-            cur_num_green_potions = row[0]  # Access the values directly from the row
-            cur_gold = row[1]
+            cur_num_red_potions = row[0]  # Access the values directly from the row
+            cur_num_green_potions = row[1]
+            cur_num_blue_potions = row[2]
+            cur_num_dark_potions = row[3]
+            cur_gold = row[4]
 
-        if quantity <= cur_num_green_potions:
-            cur_num_green_potions -= quantity
-            cur_gold += price
-            connection.execute(sqlalchemy.text(
-                "UPDATE global_inventory SET num_green_potions = :num_green_potions, gold = :gold WHERE id = 1"
-            ), {
-                'num_green_potions': cur_num_green_potions,
-                'gold' : cur_gold
-            })
+        for item_sku, quantity in cart.items():
+            if item_sku == "RED_POTION_0" and quantity <= cur_num_red_potions:
+                cur_num_red_potions -= quantity
+                total_potions_bought += quantity
+                total_price += quantity * 50  # Assuming potion price is 50
+            elif item_sku == "GREEN_POTION_0" and quantity <= cur_num_green_potions:
+                cur_num_green_potions -= quantity
+                total_potions_bought += quantity
+                total_price += quantity * 50
+            elif item_sku == "BLUE_POTION_0" and quantity <= cur_num_blue_potions:
+                cur_num_blue_potions -= quantity
+                total_potions_bought += quantity
+                total_price += quantity * 50
+            elif item_sku == "DARK_POTION_0" and quantity <= cur_num_dark_potions:
+                cur_num_dark_potions -= quantity
+                total_potions_bought += quantity
+                total_price += quantity * 50
+            else:
+                return {"message": f"Not enough stock for {item_sku}"}
 
-            del cart_dict[cart_id]
+        # Update global_inventory with new potion quantities and gold
+        cur_gold += total_price
+        connection.execute(sqlalchemy.text(
+            """UPDATE global_inventory 
+               SET num_red_potions = :num_red_potions, 
+                   num_green_potions = :num_green_potions, 
+                   num_blue_potions = :num_blue_potions, 
+                   num_dark_potions = :num_dark_potions,
+                   gold = :gold
+               """
+        ), {
+            'num_red_potions': cur_num_red_potions,
+            'num_green_potions': cur_num_green_potions,
+            'num_blue_potions': cur_num_blue_potions,
+            'num_dark_potions': cur_num_dark_potions,
+            'gold': cur_gold
+        })
+
+    del cart_dict[cart_id]
 
 
-            return {"message": "Success", "total_potions_bought": quantity, "total_gold_paid": price}
-        else:
-            return {"message": "Not enough green potions for checkout", "Current green potions available": cur_num_green_potions}
-
+    return {"message": "Success", "total_potions_bought": total_potions_bought, "total_gold_paid": total_price}
+    else: 
+        return {"message": "Not enough for {item_sku}."}
