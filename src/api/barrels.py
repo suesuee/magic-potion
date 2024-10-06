@@ -87,12 +87,12 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(
-            "SELECT num_red_potions, num_green_potions, num_blue_potions, num_dark_potions, gold FROM global_inventory"
+            "SELECT gold FROM global_inventory"
         ))
     
     row = result.fetchone()
     if row:
-        cur_gold = row[4]
+        cur_gold = row[0]
 
     purchase_plan = []
 
