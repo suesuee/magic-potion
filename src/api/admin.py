@@ -31,5 +31,5 @@ def reset():
         WHERE id = 1
     """))
 
-    return {"message": "Shop has been reset to 0."}
+    return {"message": "Shop has been reset to 0 for inventory and 100 for gold."}
 
