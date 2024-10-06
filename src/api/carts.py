@@ -95,7 +95,7 @@ def create_cart(new_cart: Customer):
     cart_id += 1
     cart_dict[cart_id] = {}
     print(new_cart.customer_name, new_cart.character_class)
-    return {"cart_id": cart_id, "customer Name:" new_cart.customer_name, "character_class:" new_cart.character_class}
+    return {"cart_id": cart_id, "customer Name": new_cart.customer_name, "character_class": new_cart.character_class}
 
 
 class CartItem(BaseModel):
@@ -229,5 +229,3 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
 
 
     return {"message": "Success", "total_potions_bought": total_potions_bought, "total_gold_paid": total_price}
-    else: 
-        return {"message": "Not enough for {item_sku}."}

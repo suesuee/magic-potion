@@ -18,7 +18,7 @@ def get_inventory():
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("""
             SELECT num_red_potions, num_green_potions, num_blue_potions, num_dark_potions,
-            num_red_ml, num_green_ml, num_blue_ml, num_dark_ml, gold FROM global_inventory WHERE id = 1"
+            num_red_ml, num_green_ml, num_blue_ml, num_dark_ml, gold FROM global_inventory
         """
         ))
 
@@ -98,7 +98,7 @@ def deliver_capacity_plan(capacity_purchase : CapacityPurchase, order_id: int):
             return {
                 "message": "You need more gold to purchase additional capacity.",
                 "gold_required": additional_cost,
-                "current_gold": cur_gold
+                "current_gold": cur_gold,
                 "potion_capacity": capacity_purchase.potion_capacity,  
                 "ml_capacity": capacity_purchase.ml_capacity
   

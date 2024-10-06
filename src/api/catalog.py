@@ -13,7 +13,7 @@ def get_catalog():
 
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(
-            "SELECT num_red_potions, num_green_potions num_blue_potions, num_dark_potions FROM global_inventory"
+            "SELECT num_red_potions, num_green_potions, num_blue_potions, num_dark_potions FROM global_inventory"
         ))
 
         row = result.fetchone()
