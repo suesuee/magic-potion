@@ -27,7 +27,9 @@ def reset():
                 num_blue_ml = 0, 
                 num_dark_potions = 0, 
                 num_dark_ml = 0, 
-                gold = 100 
+                gold = 100,
+                potion_capacity = 0,
+                ml_capacity = 0
             """))
 
     return {"message": "Shop has been reset to 0 for inventory and 100 for gold."}
