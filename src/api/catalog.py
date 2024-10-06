@@ -61,5 +61,5 @@ def get_catalog():
                     "potion_type": [0, 0, 0, 100],           
         })
         
-        # Return an empty catalog if no potions are available
-    return my_catalog if catalog else []
+    # Return an empty catalog if no potions are available
+    return my_catalog if my_catalog else []
