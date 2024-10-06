@@ -87,24 +87,36 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(
-            "SELECT gold FROM global_inventory"
+            "SELECT num_red_potions, num_green_potions, num_blue_potions, num_dark_potions, gold FROM global_inventory"
         ))
     
-    row = result.fetchone()
-    if row:
-        cur_gold = row[0]
+        row = result.fetchone()
+        if row:
+            cur_num_red_potions = row[0]
+            cur_num_green_potions = row[1]
+            cur_num_blue_potions = row[2]
+            cur_num_dark_potions = row[3]
+            cur_gold = row[4]
 
     purchase_plan = []
 
     # Purchase logic for different sizes
     for barrel in wholesale_catalog:
-        if cur_gold >= barrel.price:
-            purchase_plan.append(
-                {
-                    "sku": barrel.sku,
-                    "quantity": 1
-                }
-            )
+    # For Red Potions
+        if "RED" in barrel.sku.upper() and cur_num_red_potions < 10 and cur_gold >= barrel.price:
+            purchase_plan.append({"sku": "SMALL_RED_BARREL", "quantity": 1})
+
+        # For Green Potions
+        elif "GREEN" in barrel.sku.upper() and cur_num_green_potions < 10 and cur_gold >= barrel.price:
+            purchase_plan.append({"sku": "SMALL_GREEN_BARREL", "quantity": 1})
+
+        # For Blue Potions
+        elif "BLUE" in barrel.sku.upper() and cur_num_blue_potions < 10 and cur_gold >= barrel.price:
+            purchase_plan.append({"sku": "SMALL_BLUE_BARREL", "quantity": 1})
+
+        # For Dark Potions
+        elif "DARK" in barrel.sku.upper() and cur_num_dark_potions < 10 and cur_gold >= barrel.price:
+            purchase_plan.append({"sku": "SMALL_DARK_BARREL", "quantity": 1})
 
     return purchase_plan if purchase_plan else [] # Return an empty plan if purchase is not needed
 
