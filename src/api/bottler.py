@@ -14,7 +14,6 @@ router = APIRouter(
 class PotionInventory(BaseModel):
     potion_type: list[int]
     quantity: int
-
 POTION_TYPES = {
     "red": [100,0,0,0],
     "green": [0,100,0,0],
@@ -30,47 +29,45 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
     cur_green_bottles = 0
     cur_blue_bottles = 0
     cur_dark_bottles = 0
-    red_ml_used = 0
-    green_ml_used = 0
-    blue_ml_used= 0
-    dark_ml_used = 0
+    red_ml_remaining = 0
+    green_ml_remaining = 0
+    blue_ml_remaining = 0
+    dark_ml_remaining = 0
             
     for potion in potions_delivered:
         quantity = potion.quantity
-        potion_type = potion.potion_type
-
-        red_ml_used += potion_type[0] * quantity
-        green_ml_used += potion_type[1] * quantity
-        blue_ml_used += potion_type[2] * quantity
-        dark_ml_used += potion_type[3] * quantity
-
-        if potion_type[0] > 0: 
+        # potion_type = potion.potion_type
+        if potion.potion_type == POTION_TYPES["red"]: 
             cur_red_bottles += quantity
-        if potion_type[1] > 0: 
+            red_ml_remaining += quantity % 100
+        if potion.potion_type == POTION_TYPES["green"]: 
             cur_green_bottles += quantity
-        if potion_type[2] > 0: 
+            green_ml_remaining += quantity % 100
+        if potion.potion_type == POTION_TYPES["blue"]: 
             cur_blue_bottles += quantity
-        if potion_type[3] > 0: 
-            cur_dark_bottles += quantity   
+            blue_ml_remaining += quantity % 100
+        if potion.potion_type == POTION_TYPES["dark"]:
+            cur_dark_bottles += quantity
+            dark_ml_remaining += quantity % 100   
 
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text(
         """
         UPDATE global_inventory 
-        SET num_red_potions= num_red_potions + :cur_red_bottles, num_red_ml = num_red_ml - :red_ml_used,
-            num_green_potions= num_green_potions + :cur_green_bottles, num_green_ml = num_green_ml - :green_ml_used, 
-            num_blue_potions= num_blue_potions + :cur_blue_bottles, num_blue_ml = num_blue_ml - :blue_ml_used,
-            num_dark_potions= num_dark_potions + :cur_dark_bottles, num_dark_ml = num_dark_ml - :dark_ml_used
+        SET num_red_potions= num_red_potions + :cur_red_bottles, num_red_ml = num_red_ml + :red_ml_remaining,
+            num_green_potions= num_green_potions + :cur_green_bottles, num_green_ml = num_green_ml + :green_ml_remaining, 
+            num_blue_potions= num_blue_potions + :cur_blue_bottles, num_blue_ml = num_blue_ml + :blue_ml_remaining,
+            num_dark_potions= num_dark_potions + :cur_dark_bottles, num_dark_ml = num_dark_ml + :dark_ml_remaining
         """
     ), {
         'cur_red_bottles': cur_red_bottles,
-        'red_ml_used': red_ml_used,
+        'red_ml_remaining': red_ml_remaining,
         'cur_green_bottles': cur_green_bottles,
-        'green_ml_used': green_ml_used,
+        'green_ml_remaining': green_ml_remaining,
         'cur_blue_bottles': cur_blue_bottles,
-        'blue_ml_used': blue_ml_used,
+        'blue_ml_remaining': blue_ml_remaining,
         'cur_dark_bottles': cur_dark_bottles,
-        'dark_ml_used': dark_ml_used,
+        'dark_ml_remaining': dark_ml_remaining,
     })               
 
     print(f"potions bottles delivered: {potions_delivered} order_id: {order_id}")
