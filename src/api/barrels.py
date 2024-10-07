@@ -99,24 +99,28 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             cur_gold = row[4]
 
     purchase_plan = []
+    purchased_skus = set()
 
     # Purchase logic for different sizes
     for barrel in wholesale_catalog:
-    # For Red Potions
+        if barrel.sku.upper() in purchased_skus:
+            continue # Skip
+        # For Red Potions
         if "RED" in barrel.sku.upper() and cur_num_red_potions < 10 and cur_gold >= barrel.price:
             purchase_plan.append({"sku": "SMALL_RED_BARREL", "quantity": 1})
-
+            purchased_skus.add("SMALL_RED_BARREL")
         # For Green Potions
         elif "GREEN" in barrel.sku.upper() and cur_num_green_potions < 10 and cur_gold >= barrel.price:
             purchase_plan.append({"sku": "SMALL_GREEN_BARREL", "quantity": 1})
-
+            purchased_skus.add("SMALL_GREEN_BARREL")
         # For Blue Potions
         elif "BLUE" in barrel.sku.upper() and cur_num_blue_potions < 10 and cur_gold >= barrel.price:
             purchase_plan.append({"sku": "SMALL_BLUE_BARREL", "quantity": 1})
-
+            purchased_skus.add("SMALL_BLUE_BARREL")
         # For Dark Potions
         elif "DARK" in barrel.sku.upper() and cur_num_dark_potions < 10 and cur_gold >= barrel.price:
             purchase_plan.append({"sku": "SMALL_DARK_BARREL", "quantity": 1})
+            purchased_skus.add("SMALL_DARK_BARREL")
 
     return purchase_plan if purchase_plan else [] # Return an empty plan if purchase is not needed
 
