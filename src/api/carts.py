@@ -99,6 +99,7 @@ def create_cart(new_cart: Customer):
     cart_dict[cart_id] = {}
     print(new_cart.customer_name, new_cart.character_class)
     return {
+        "cart_id": cart_id,
         "customer_name": new_cart.customer_name, 
         "character_class": new_cart.character_class,
         "level": new_cart.level
