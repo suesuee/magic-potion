@@ -36,18 +36,13 @@ def get_inventory():
             cur_ml_capacity = row[9]
             cur_gold = row[10]
 
+        num_of_potions = cur_num_red_potions + cur_num_green_potions + cur_num_blue_potions + cur_num_dark_potions
+        ml_in_barrels = cur_num_red_ml + cur_num_green_ml + cur_num_blue_ml + cur_num_dark_ml
+
     return {
-        "red_potions": cur_num_red_potions, 
-        "green_potions": cur_num_green_potions, 
-        "blue_potions": cur_num_blue_potions, 
-        "dark_potions": cur_num_dark_potions, 
-        "red_ml": cur_num_red_ml,
-        "green_ml": cur_num_green_ml,
-        "blue_ml": cur_num_blue_ml,
-        "dark_ml": cur_num_dark_ml,
-        "potion_capacity": cur_potion_capacity,
-        "ml_capacity": cur_ml_capacity,
-        "gold": cur_gold
+        "number_of_potions": "num_of_potions",
+        "ml_in_barrels": "ml_in_barrels",
+        "gold": "cur_gold"
     }
 
 # Gets called once a day
@@ -86,10 +81,8 @@ def get_capacity_plan():
         #cur_gold -= 1000
 
     return purchase_plan if purchase_plan else {
-        "message": "No additional capacity needed",
         "potion_capacity": cur_potion_capacity,
-        "ml_capacity": cur_ml_capacity,
-        "gold_remaining": cur_gold
+        "ml_capacity": cur_ml_capacity
     }
 
 class CapacityPurchase(BaseModel):
@@ -129,9 +122,6 @@ def deliver_capacity_plan(capacity_purchase : CapacityPurchase, order_id: int):
 
 
         return {
-            "message": f"Capacity updated. {capacity_purchase.potion_capacity} potion capacity "
-                    f"and {capacity_purchase.ml_capacity} ml capacity added.",
-            "gold_remaining": cur_gold,
             "potion_capacity": capacity_purchase.potion_capacity,  
             "ml_capacity": capacity_purchase.ml_capacity           
         }

@@ -84,7 +84,10 @@ def post_visits(visit_id: int, customers: list[Customer]):
     """
     print(customers)
 
-    return {'message:':f"customer who visited {customers.name}"}
+    return {
+        'success': True,  # or False, depending on your logic
+        'message': f"Customer who visited: {[customer.name for customer in customers]}"
+    }
 
 
 @router.post("/")
@@ -95,7 +98,11 @@ def create_cart(new_cart: Customer):
     cart_id += 1
     cart_dict[cart_id] = {}
     print(new_cart.customer_name, new_cart.character_class)
-    return {"cart_id": cart_id, "customer Name": new_cart.customer_name, "character_class": new_cart.character_class}
+    return {
+        "customer_name": new_cart.customer_name, 
+        "character_class": new_cart.character_class,
+        "level": new_cart.level
+        }
 
 
 class CartItem(BaseModel):
@@ -107,7 +114,7 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     """ Customers can add multiple items of green potions. Check cart and inventory first.  """
     
     if cart_id not in cart_dict:
-        return {"message": "Cart not found"}, 404
+        return {"success": False, "message": "Cart not found"}, 404
 
     cart = cart_dict[cart_id]
     
@@ -132,18 +139,18 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     # Check if the quantity added is within available stock
     if item_sku == "RED_POTION_0" and cart_item.quantity <= cur_num_red_potions:
         cart[item_sku] = cart_item.quantity
-        return {"message": "Potion added to cart", "quantity": cart_item.quantity}
+        return {"success": True, "message": "Potion added to cart", "quantity": cart_item.quantity}
     elif item_sku == "GREEN_POTION_0" and cart_item.quantity <= cur_num_green_potions:
         cart[item_sku] = cart_item.quantity
-        return {"message": "Potion added to cart", "quantity": cart_item.quantity}
+        return {"success": True, "message": "Potion added to cart", "quantity": cart_item.quantity}
     elif item_sku == "BLUE_POTION_0" and cart_item.quantity <= cur_num_blue_potions:
         cart[item_sku] = cart_item.quantity
-        return {"message": "Potion added to cart", "quantity": cart_item.quantity}
+        return {"success": True, "message": "Potion added to cart", "quantity": cart_item.quantity}
     elif item_sku == "DARK_POTION_0" and cart_item.quantity <= cur_num_dark_potions:
         cart[item_sku] = cart_item.quantity
-        return {"message": "Potion added to cart", "quantity": cart_item.quantity}
+        return {"success": True, "message": "Potion added to cart", "quantity": cart_item.quantity}
     else:
-        return {"message": "Failure. Don't add more than available stock."}
+        return {"success": False, "message": "Failure. Don't add more than available stock."}
     
     # with db.engine.begin() as connection:
     #     result = connection.execute(sqlalchemy.text(
@@ -240,4 +247,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     del cart_dict[cart_id]
 
 
-    return {"message": "Success", "total_potions_bought": total_potions_bought, "total_gold_paid": total_price}
+    return {
+        "total_potions_bought": total_potions_bought, 
+        "total_gold_paid": total_price
+        }

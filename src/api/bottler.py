@@ -14,6 +14,7 @@ router = APIRouter(
 class PotionInventory(BaseModel):
     potion_type: list[int]
     quantity: int
+
 POTION_TYPES = {
     "red": [100,0,0,0],
     "green": [0,100,0,0],
