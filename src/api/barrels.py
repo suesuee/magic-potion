@@ -42,12 +42,16 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
 
             if "RED" in barrel.sku.upper():
                 cur_num_red_ml += barrel.ml_per_barrel * barrel.quantity
+                print("RED delivered.")
             elif "GREEN" in barrel.sku.upper():
                 cur_num_green_ml += barrel.ml_per_barrel * barrel.quantity
+                print("GREEN delivered.")
             elif "BLUE" in barrel.sku.upper():
                 cur_num_blue_ml += barrel.ml_per_barrel * barrel.quantity
+                print("BLUE delivered.")
             elif "DARK" in barrel.sku.upper():
                 cur_num_dark_ml += barrel.ml_per_barrel * barrel.quantity
+                print("DARK delivered.")
             
             cur_gold -= barrel.price * barrel.quantity
             
@@ -107,21 +111,25 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             purchase_plan.append({"sku": barrel.sku, "quantity": 1})
             cur_gold -= barrel.price
             purchased_skus.add(barrel.sku)
+            print("Bought Red Barrels")
         # For Green Potions
         elif "GREEN" in barrel.sku.upper() and cur_num_green_potions < 10 and cur_gold >= barrel.price:
             purchase_plan.append({"sku": barrel.sku, "quantity": 1})
             cur_gold -= barrel.price
             purchased_skus.add(barrel.sku)
+            print("Bought Red Barrels")
         # For Blue Potions
         elif "BLUE" in barrel.sku.upper() and cur_num_blue_potions < 10 and cur_gold >= barrel.price:
             purchase_plan.append({"sku": barrel.sku, "quantity": 1})
             cur_gold -= barrel.price
             purchased_skus.add(barrel.sku)
+            print("Bought Red Barrels")
         # For Dark Potions
         elif "DARK" in barrel.sku.upper() and cur_num_dark_potions < 10 and cur_gold >= barrel.price:
             purchase_plan.append({"sku": barrel.sku, "quantity": 1})
             cur_gold -= barrel.price
             purchased_skus.add(barrel.sku)
+            print("Bought Red Barrels")
 
     return purchase_plan if purchase_plan else [] # Return an empty plan if purchase is not needed
 
