@@ -39,18 +39,17 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
 
         # Update the ml (inventory) after the barrels are delivered.
         for barrel in barrels_delivered:
+
             if "RED" in barrel.sku.upper():
                 cur_num_red_ml += barrel.ml_per_barrel * barrel.quantity
-                cur_gold -= barrel.price * barrel.quantity
             elif "GREEN" in barrel.sku.upper():
                 cur_num_green_ml += barrel.ml_per_barrel * barrel.quantity
-                cur_gold -= barrel.price * barrel.quantity
             elif "BLUE" in barrel.sku.upper():
                 cur_num_blue_ml += barrel.ml_per_barrel * barrel.quantity
-                cur_gold -= barrel.price * barrel.quantity
             elif "DARK" in barrel.sku.upper():
                 cur_num_dark_ml += barrel.ml_per_barrel * barrel.quantity
-                cur_gold -= barrel.price * barrel.quantity
+            
+            cur_gold -= barrel.price * barrel.quantity
             
         else:
             print(f"Not enough gold to buy {barrel.sku}.Not buying.")
@@ -107,19 +106,23 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             continue # Skip
         # For Red Potions
         if "RED" in barrel.sku.upper() and cur_num_red_potions < 10 and cur_gold >= barrel.price:
-            purchase_plan.append({"sku": "SMALL_RED_BARREL", "quantity": 1})
+            purchase_plan.append({"sku": barrel.sku, "quantity": 1})
+            cur_gold -= barrel.price
             purchased_skus.add("SMALL_RED_BARREL")
         # For Green Potions
         elif "GREEN" in barrel.sku.upper() and cur_num_green_potions < 10 and cur_gold >= barrel.price:
-            purchase_plan.append({"sku": "SMALL_GREEN_BARREL", "quantity": 1})
+            purchase_plan.append({"sku": barrel.sku, "quantity": 1})
+            cur_gold -= barrel.price
             purchased_skus.add("SMALL_GREEN_BARREL")
         # For Blue Potions
         elif "BLUE" in barrel.sku.upper() and cur_num_blue_potions < 10 and cur_gold >= barrel.price:
-            purchase_plan.append({"sku": "SMALL_BLUE_BARREL", "quantity": 1})
+            purchase_plan.append({"sku": barrel.sku, "quantity": 1})
+            cur_gold -= barrel.price
             purchased_skus.add("SMALL_BLUE_BARREL")
         # For Dark Potions
         elif "DARK" in barrel.sku.upper() and cur_num_dark_potions < 10 and cur_gold >= barrel.price:
-            purchase_plan.append({"sku": "SMALL_DARK_BARREL", "quantity": 1})
+            purchase_plan.append({"sku": barrel.sku, "quantity": 1})
+            cur_gold -= barrel.price
             purchased_skus.add("SMALL_DARK_BARREL")
 
     return purchase_plan if purchase_plan else [] # Return an empty plan if purchase is not needed
