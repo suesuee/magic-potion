@@ -40,9 +40,9 @@ def get_inventory():
         ml_in_barrels = cur_num_red_ml + cur_num_green_ml + cur_num_blue_ml + cur_num_dark_ml
 
     return {
-        "number_of_potions": "num_of_potions",
-        "ml_in_barrels": "ml_in_barrels",
-        "gold": "cur_gold"
+        "number_of_potions": num_of_potions,
+        "ml_in_barrels": ml_in_barrels,
+        "gold": cur_gold
     }
 
 # Gets called once a day
@@ -104,8 +104,8 @@ def deliver_capacity_plan(capacity_purchase : CapacityPurchase, order_id: int):
 
         row = result.fetchone()
         if row:
-            cur_potion_capacity = row[0],
-            cur_ml_capacity = row[1],
+            cur_potion_capacity = row[0]
+            cur_ml_capacity = row[1]
             cur_gold = row[2]
 
         connection.execute(sqlalchemy.text(
@@ -113,7 +113,8 @@ def deliver_capacity_plan(capacity_purchase : CapacityPurchase, order_id: int):
             UPDATE global_inventory 
             SET potion_capacity = potion_capacity + :potion_capacity,
             ml_capacity = ml_capacity + :ml_capacity,
-            gold = 1000 - :gold"""
+            gold = gold - 1000
+            """
         ),{
             'potion_capacity': capacity_purchase.potion_capacity,
             'ml_capacity': capacity_purchase.ml_capacity,
