@@ -50,48 +50,51 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
             cur_num_dark_ml = row[7]
             cur_gold = row[8]
 
-        remaining_ml = {"red": 0, "green": 0, "blue": 0, "dark": 0}
-
+            remaining_red_ml = 0
+            remaining_green_ml = 0
+            remaining_blue_ml = 0
+            remaining_dark_ml = 0
+            
         for potion in potions_delivered:
             if potion.potion_type == POTION_TYPES["red"]:
                 cur_num_red_ml += potion.quantity * 100 # Get ml for the delivered potions
 
                 cur_red_potions_to_bottle = cur_num_red_ml // 100 # Return int  
-                remaining_ml["red"] += cur_num_red_ml % 100 # Return remainder aka left over ml from potions_to_bottle
+                remaining_red_ml += cur_num_red_ml % 100 # Return remainder aka left over ml from potions_to_bottle
 
                 # Update again after bottled
                 cur_num_red_potions += cur_red_potions_to_bottle
-                cur_num_red_ml = remaining_ml
+                cur_num_red_ml = remaining_red_ml
 
             elif potion.potion_type == POTION_TYPES["green"]:
                 cur_num_green_ml += potion.quantity * 100 # Get ml for the delivered potions
 
                 cur_green_potions_to_bottle = cur_num_green_ml // 100 # Return int  
-                remaining_ml["green"] += cur_num_green_ml % 100 # Return remainder aka left over ml from potions_to_bottle
+                remaining_green_ml += cur_num_green_ml % 100 # Return remainder aka left over ml from potions_to_bottle
 
                 # Update again after bottled
                 cur_num_green_potions += cur_green_potions_to_bottle
-                cur_num_green_ml = remaining_ml
+                cur_num_green_ml = remaining_green_ml
 
             elif potion.potion_type == POTION_TYPES["blue"]:
                 cur_num_blue_ml += potion.quantity * 100 # Get ml for the delivered potions
 
                 cur_blue_potions_to_bottle = cur_num_blue_ml // 100 # Return int  
-                remaining_ml["blue"] += cur_num_blue_ml % 100 # Return remainder aka left over ml from potions_to_bottle
+                remaining_blue_ml += cur_num_blue_ml % 100 # Return remainder aka left over ml from potions_to_bottle
 
                 # Update again after bottled
                 cur_num_blue_potions += cur_blue_potions_to_bottle
-                cur_num_blue_ml = remaining_ml
+                cur_num_blue_ml = remaining_blue_ml
 
             elif potion.potion_type == POTION_TYPES["dark"]:
                 cur_num_dark_ml += potion.quantity * 100 # Get ml for the delivered potions
 
                 cur_dark_potions_to_bottle = cur_num_dark_ml // 100 # Return int  
-                remaining_ml["dark"] += cur_num_dark_ml % 100 # Return remainder aka left over ml from potions_to_bottle
+                remaining_dark_ml += cur_num_dark_ml % 100 # Return remainder aka left over ml from potions_to_bottle
 
                 # Update again after bottled
                 cur_num_dark_potions += cur_dark_potions_to_bottle
-                cur_num_dark_ml = remaining_ml
+                cur_num_dark_ml = remaining_dark_ml
 
         connection.execute(sqlalchemy.text(
             """
