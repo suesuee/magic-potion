@@ -244,7 +244,8 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             'gold': cur_gold
         })
 
-    del cart_dict[cart_id]
+    if cart_id in cart_dict:
+        del cart_dict[cart_id]
 
 
     return {
