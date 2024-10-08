@@ -42,42 +42,45 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
             cur_num_blue_potions, cur_num_blue_ml, \
             cur_num_dark_potions, cur_num_dark_ml = row
 
+        # Dictionary to hold potion counts and ml to update later in bulk
+        potion_updates = {
+            "num_red_potions": cur_num_red_potions,
+            "num_red_ml": cur_num_red_ml,
+            "num_green_potions": cur_num_green_potions,
+            "num_green_ml": cur_num_green_ml,
+            "num_blue_potions": cur_num_blue_potions,
+            "num_blue_ml": cur_num_blue_ml,
+            "num_dark_potions": cur_num_dark_potions,
+            "num_dark_ml": cur_num_dark_ml
+        }
+
         # Loop through each potion delivered and update the inventory accordingly
         for potion in potions_delivered:
             if potion.potion_type == POTION_TYPES["red"]:
-                # Calculate only the new ml delivered and the number of new bottles
-                new_ml = potion.quantity * 100
-                new_red_bottles = new_ml // 100
-                remaining_ml_red = new_ml % 100
-                
-                cur_num_red_potions += new_red_bottles  # Add new bottles
-                cur_num_red_ml = remaining_ml_red  # Add any remaining ml to the total
+                required_ml = potion.quantity * 100
+                if potion_updates["num_red_ml"] >= required_ml:
+                    potion_updates["num_red_ml"] -= required_ml
+                    potion_updates["num_red_potions"] += potion.quantity
 
             elif potion.potion_type == POTION_TYPES["green"]:
-                new_ml = potion.quantity * 100
-                new_green_bottles = new_ml // 100
-                remaining_ml_green = new_ml % 100
-                
-                cur_num_green_potions += new_green_bottles
-                cur_num_green_ml = remaining_ml_green
+                required_ml = potion.quantity * 100
+                if potion_updates["num_green_ml"] >= required_ml:
+                    potion_updates["num_green_ml"] -= required_ml
+                    potion_updates["num_green_potions"] += potion.quantity
 
             elif potion.potion_type == POTION_TYPES["blue"]:
-                new_ml = potion.quantity * 100
-                new_blue_bottles = new_ml // 100
-                remaining_ml_blue = new_ml % 100
-                
-                cur_num_blue_potions += new_blue_bottles
-                cur_num_blue_ml = remaining_ml_blue
+                required_ml = potion.quantity * 100
+                if potion_updates["num_blue_ml"] >= required_ml:
+                    potion_updates["num_blue_ml"] -= required_ml
+                    potion_updates["num_blue_potions"] += potion.quantity
 
             elif potion.potion_type == POTION_TYPES["dark"]:
-                new_ml = potion.quantity * 100
-                new_dark_bottles = new_ml // 100
-                remaining_ml_dark = new_ml % 100
-                
-                cur_num_dark_potions += new_dark_bottles
-                cur_num_dark_ml = remaining_ml_dark
+                required_ml = potion.quantity * 100
+                if potion_updates["num_dark_ml"] >= required_ml:
+                    potion_updates["num_dark_ml"] -= required_ml
+                    potion_updates["num_dark_potions"] += potion.quantity
 
-        # Update the database with the new potion and ml counts
+        # Update the database with the new potion and ml counts in a single query
         connection.execute(sqlalchemy.text(
             """
             UPDATE global_inventory SET 
@@ -86,16 +89,7 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
             num_blue_potions = :num_blue_potions, num_blue_ml = :num_blue_ml, 
             num_dark_potions = :num_dark_potions, num_dark_ml = :num_dark_ml 
             """
-        ), {
-            'num_red_potions': cur_num_red_potions,
-            'num_red_ml': cur_num_red_ml,
-            'num_green_potions': cur_num_green_potions,
-            'num_green_ml': cur_num_green_ml,
-            'num_blue_potions': cur_num_blue_potions,
-            'num_blue_ml': cur_num_blue_ml,
-            'num_dark_potions': cur_num_dark_potions,
-            'num_dark_ml': cur_num_dark_ml
-        })               
+        ), potion_updates)               
 
     print(f"Potions delivered: {potions_delivered}, Order ID: {order_id}")
     return "OK"

@@ -220,7 +220,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                 total_price += quantity * 50
             elif item_sku == "BLUE_POTION_0" and quantity <= cur_num_blue_potions:
                 cur_num_blue_potions -= quantity
-                cur_gold += quantity * 50
+                cur_gold += quantity * 60
                 total_potions_bought += quantity
                 total_price += quantity * 60
             elif item_sku == "DARK_POTION_0" and quantity <= cur_num_dark_potions:

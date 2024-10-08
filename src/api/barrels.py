@@ -116,19 +116,19 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             # purchased_skus.add(barrel.sku)
             print("Bought Red Barrels")
         # For Green Potions
-        elif barrel.sku.upper() == "SMALL_GREEN_BARREL" and cur_num_green_potions < 10 and cur_gold >= barrel.price:
+        if barrel.sku.upper() == "SMALL_GREEN_BARREL" and cur_num_green_potions < 10 and cur_gold >= barrel.price:
             purchase_plan.append({"sku": barrel.sku, "quantity": 1})
             cur_gold -= barrel.price
             # purchased_skus.add(barrel.sku)
             print("Bought Green Barrels")
         # For Blue Potions
-        elif barrel.sku.upper() == "SMALL_BLUE_BARREL" and cur_num_blue_potions < 10 and cur_gold >= barrel.price:
+        if barrel.sku.upper() == "SMALL_BLUE_BARREL" and cur_num_blue_potions < 10 and cur_gold >= barrel.price:
             purchase_plan.append({"sku": barrel.sku, "quantity": 1})
             cur_gold -= barrel.price
             # purchased_skus.add(barrel.sku)
             print("Bought Blue Barrels")
         # For Dark Potions
-        elif barrel.sku.upper() == "SMALL_DARK_BARREL" and cur_num_dark_potions < 10 and cur_gold >= barrel.price:
+        if barrel.sku.upper() == "SMALL_DARK_BARREL" and cur_num_dark_potions < 10 and cur_gold >= barrel.price:
             purchase_plan.append({"sku": barrel.sku, "quantity": 1})
             cur_gold -= barrel.price
             # purchased_skus.add(barrel.sku)
