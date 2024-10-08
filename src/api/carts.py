@@ -85,8 +85,7 @@ def post_visits(visit_id: int, customers: list[Customer]):
     print(customers)
 
     return {
-        'success': True,  # or False, depending on your logic
-        'message': f"Customer who visited: {[customer.customer_name for customer in customers]}"
+        'success': True
     }
 
 
