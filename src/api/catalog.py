@@ -44,15 +44,15 @@ def get_catalog():
                     "price": 50,
                     "potion_type": [0, 100, 0, 0],           
         })
-    if cur_green_potions > 0:
+    if cur_blue_potions > 0:
         my_catalog.append({
                     "sku": "BLUE_POTION_0",
                     "name": "blue potion",
                     "quantity": cur_blue_potions,
-                    "price": 50,
+                    "price": 60,
                     "potion_type": [0, 0, 100, 0],           
         })
-    if cur_green_potions > 0:
+    if cur_dark_potions > 0:
         my_catalog.append({
                     "sku": "DARK_POTION_0",
                     "name": "dark potion",
