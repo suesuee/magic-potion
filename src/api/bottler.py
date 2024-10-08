@@ -42,38 +42,39 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
             cur_num_blue_potions, cur_num_blue_ml, \
             cur_num_dark_potions, cur_num_dark_ml = row
 
-        remaining_ml_red = 0
-        remaining_ml_green = 0
-        remaining_ml_blue = 0
-        remaining_ml_dark = 0
         # Loop through each potion delivered and update the inventory accordingly
         for potion in potions_delivered:
             if potion.potion_type == POTION_TYPES["red"]:
-                cur_num_red_ml += potion.quantity * 100
-                cur_red_potions_to_bottle = cur_num_red_ml // 100
-                remaining_ml_red = cur_num_red_ml % 100
-                cur_num_red_potions += cur_red_potions_to_bottle
-                cur_num_red_ml = remaining_ml_red
+                # Calculate only the new ml delivered and the number of new bottles
+                new_ml = potion.quantity * 100
+                new_red_bottles = new_ml // 100
+                remaining_ml_red = new_ml % 100
+                
+                cur_num_red_potions += new_red_bottles  # Add new bottles
+                cur_num_red_ml = remaining_ml_red  # Add any remaining ml to the total
 
             elif potion.potion_type == POTION_TYPES["green"]:
-                cur_num_green_ml += potion.quantity * 100
-                cur_green_potions_to_bottle = cur_num_green_ml // 100
-                remaining_ml_green = cur_num_green_ml % 100
-                cur_num_green_potions += cur_green_potions_to_bottle
+                new_ml = potion.quantity * 100
+                new_green_bottles = new_ml // 100
+                remaining_ml_green = new_ml % 100
+                
+                cur_num_green_potions += new_green_bottles
                 cur_num_green_ml = remaining_ml_green
 
             elif potion.potion_type == POTION_TYPES["blue"]:
-                cur_num_blue_ml += potion.quantity * 100
-                cur_blue_potions_to_bottle = cur_num_blue_ml // 100
-                remaining_ml_blue = cur_num_blue_ml % 100
-                cur_num_blue_potions += cur_blue_potions_to_bottle
+                new_ml = potion.quantity * 100
+                new_blue_bottles = new_ml // 100
+                remaining_ml_blue = new_ml % 100
+                
+                cur_num_blue_potions += new_blue_bottles
                 cur_num_blue_ml = remaining_ml_blue
 
             elif potion.potion_type == POTION_TYPES["dark"]:
-                cur_num_dark_ml += potion.quantity * 100
-                cur_dark_potions_to_bottle = cur_num_dark_ml // 100
-                remaining_ml_dark = cur_num_dark_ml % 100
-                cur_num_dark_potions += cur_dark_potions_to_bottle
+                new_ml = potion.quantity * 100
+                new_dark_bottles = new_ml // 100
+                remaining_ml_dark = new_ml % 100
+                
+                cur_num_dark_potions += new_dark_bottles
                 cur_num_dark_ml = remaining_ml_dark
 
         # Update the database with the new potion and ml counts
