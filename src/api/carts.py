@@ -232,7 +232,6 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                 return {"message": f"Not enough stock for {item_sku}"}
 
         # Update global_inventory with new potion quantities and gold
-        cur_gold += total_price
         connection.execute(sqlalchemy.text(
             """UPDATE global_inventory 
                SET num_red_potions = :num_red_potions, 

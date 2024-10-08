@@ -78,12 +78,13 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
 
         # Update the database with the new potion and ml counts
         connection.execute(sqlalchemy.text(
-            "UPDATE global_inventory SET "
-            "num_red_potions = :num_red_potions, num_red_ml = :num_red_ml, "
-            "num_green_potions = :num_green_potions, num_green_ml = :num_green_ml, "
-            "num_blue_potions = :num_blue_potions, num_blue_ml = :num_blue_ml, "
-            "num_dark_potions = :num_dark_potions, num_dark_ml = :num_dark_ml "
-            "WHERE id = 1"
+            """
+            UPDATE global_inventory SET 
+            num_red_potions = :num_red_potions, num_red_ml = :num_red_ml, 
+            num_green_potions = :num_green_potions, num_green_ml = :num_green_ml, 
+            num_blue_potions = :num_blue_potions, num_blue_ml = :num_blue_ml, 
+            num_dark_potions = :num_dark_potions, num_dark_ml = :num_dark_ml 
+            """
         ), {
             'num_red_potions': cur_num_red_potions,
             'num_red_ml': cur_num_red_ml,
