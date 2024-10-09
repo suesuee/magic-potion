@@ -134,7 +134,10 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
         ))
         row = result.fetchone()
         if row:
-            cur_num_red_potions, cur_num_green_potions, cur_num_blue_potions, cur_num_dark_potions = row
+            cur_num_red_potions = row[0]
+            cur_num_green_potions = row[1]
+            cur_num_blue_potions = row[2]
+            cur_num_dark_potions = row[3]
     
     # Check if the quantity added is within available stock
     if item_sku == "RED_POTION_0" and cart_item.quantity <= cur_num_red_potions:
