@@ -4,6 +4,8 @@ from pydantic import BaseModel
 from src.api import auth
 from enum import Enum
 from src import database as db
+from sqlalchemy import text
+
 
 router = APIRouter(
     prefix="/carts",
@@ -84,8 +86,30 @@ def post_visits(visit_id: int, customers: list[Customer]):
     """
     print(customers)
 
+    # Update or insert customers in the database
+    with db.engine.begin() as connection:
+        customer_sql = """
+        INSERT INTO customer (customer_name, customer_class, level)
+        VALUES (:customer_name, :customer_class, :level)
+        ON CONFLICT (customer_name) DO UPDATE
+        SET customer_class = :customer_class, level = :level
+        RETURNING id
+        """
+        customer_ids = []
+        for customer in customers:
+            # Insert or update each customer in the list
+            result = connection.execute(text(customer_sql), {
+                "customer_name": customer.customer_name,
+                "customer_class": customer.character_class,
+                "level": customer.level
+            })
+            customer_id = result.scalar()
+            customer_ids.append(customer_id)
+
+    # Return the list of customer IDs as confirmation
     return {
-        'success': True
+        "success": True,
+        "customer_ids": customer_ids
     }
 
 
@@ -93,10 +117,31 @@ def post_visits(visit_id: int, customers: list[Customer]):
 def create_cart(new_cart: Customer):
     """ Create a cart to store the quantity"""
 
-    global cart_id
-    cart_id += 1
-    cart_dict[cart_id] = {}
-    print(new_cart.customer_name, new_cart.character_class)
+    # Assume the customer already exists (updated in post_visits)
+    with db.engine.begin() as connection:
+        # Retrieve the customer ID from the database
+        get_customer_sql = """
+        SELECT id FROM customer WHERE customer_name = :customer_name
+        """
+        customer_result = connection.execute(text(get_customer_sql), {
+            "customer_name": new_cart.customer_name
+        })
+        customer_id = customer_result.scalar()
+
+        if not customer_id:
+            raise ValueError("Customer does not exist. Please add the customer through post_visits first.")
+
+        # Now, create a new cart for this customer
+        create_cart_sql = """
+        INSERT INTO cart (customer_id, created_at)
+        VALUES (:customer_id, now())
+        RETURNING id
+        """
+        cart_result = connection.execute(text(create_cart_sql), {
+            "customer_id": customer_id
+        })
+        cart_id = cart_result.scalar()
+
     return {
         "cart_id": cart_id,
         "customer_name": new_cart.customer_name, 
