@@ -32,11 +32,11 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
         for potion in potions_delivered:
             connection.execute(sqlalchemy.text(
                 """
-                UPDATE potions
+                UPDATE potions_inventory
                 SET inventory = inventory + :new_potions
                 WHERE potion_type = :potion_type
                 """),
-                [{"new_potions": potion.quantity, "potion_type": potion.potion_type}]
+                {"new_potions": potion.quantity, "potion_type": potion.potion_type}
             )
 
         connection.execute(sqlalchemy.text(
@@ -45,11 +45,10 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
             SET num_red_ml = num_red_ml - :red_ml,
             num_green_ml = num_green_ml - :green_ml,
             num_blue_ml = num_blue_ml - :blue_ml,
-            num_dark_ml = num_dark_ml - :dark_ml,
+            num_dark_ml = num_dark_ml - :dark_ml
             """
         ), 
-        [{"red_ml": red_ml, "green_ml": green_ml, "blue_ml": blue_ml, "dark_ml": dark_ml}]
-        )    
+        {"red_ml": red_ml, "green_ml": green_ml, "blue_ml": blue_ml, "dark_ml": dark_ml})    
 
     print(f"Potions delivered: {potions_delivered}, Order ID: {order_id}")
     return "OK"
@@ -74,7 +73,7 @@ def get_bottle_plan():
 
     for potion in potion_list:
         potion_quantities[potion.sku] = 0
-        total_potion_made += potion.inventory
+        #total_potion_made += potion.inventory
     num_potions = len(potion_list)
     count = 0;
     while True:
