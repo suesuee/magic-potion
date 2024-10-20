@@ -16,31 +16,20 @@ def get_inventory():
     """ Get what we have currently from the database """
 
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("""
-            SELECT num_red_potions, num_green_potions, num_blue_potions, num_dark_potions,
-            num_red_ml, num_green_ml, num_blue_ml, num_dark_ml, gold FROM global_inventory
-        """
-        ))
+        global_inventory = connection.execute(sqlalchemy.text(
+            """
+            SELECT num_red_ml, num_green_ml, num_blue_ml, num_dark_ml, gold 
+            FROM global_inventory
+            """)).first()
+        total_potions = sum(row.inventory for row in connection.execute(sqlalchemy.text("SELECT inventory FROM potions_inventory")))
+    
+    total_ml = global_inventory.num_red_ml + global_inventory.num_green_ml + global_inventory.num_blue_ml + global_inventory.num_dark_ml
 
-        row = result.fetchone()
-        if row: 
-            cur_num_red_potions = row[0]
-            cur_num_green_potions = row[1]
-            cur_num_blue_potions = row[2]
-            cur_num_dark_potions = row[3]
-            cur_num_red_ml = row[4]
-            cur_num_green_ml = row[5]
-            cur_num_blue_ml = row[6]
-            cur_num_dark_ml = row[7]
-            cur_gold = row[8]
-
-        num_of_potions = cur_num_red_potions + cur_num_green_potions + cur_num_blue_potions + cur_num_dark_potions
-        ml_in_barrels = cur_num_red_ml + cur_num_green_ml + cur_num_blue_ml + cur_num_dark_ml
 
     return {
-        "number_of_potions": num_of_potions,
-        "ml_in_barrels": ml_in_barrels,
-        "gold": cur_gold
+        "number_of_potions": total_potions,
+        "ml_in_barrels": total_ml,
+        "gold": global_inventory.gold
     }
 
 # Gets called once a day
