@@ -76,8 +76,9 @@ def get_bottle_plan():
         #total_potion_made += potion.inventory
     num_potions = len(potion_list)
     count = 0;
-    while True:
-        can_produce_any = False
+    print(num_potions)
+    while num_potions > 0:
+        num_potions -= 1
         for potion in potion_list:
             if (potion_quantities[potion.sku] + potion.inventory < 40 and
                 potion.potion_type[0] <= cur_red_ml and
@@ -92,12 +93,9 @@ def get_bottle_plan():
 
                 potion_quantities[potion.sku] += 1
                 # total_potion_made += 1
+                print(num_potions)
                 print(cur_red_ml, cur_green_ml, cur_blue_ml, cur_dark_ml)
                 print(potion_quantities)
-                can_produce_any = True
-
-        if not can_produce_any: 
-            break
     
     for potion in potion_list:
         if potion_quantities[potion.sku] > 0:
