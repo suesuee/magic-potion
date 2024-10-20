@@ -92,7 +92,8 @@ def get_bottle_plan():
 
                 potion_quantities[potion.sku] += 1
                 # total_potion_made += 1
-
+                print(cur_red_ml, cur_green_ml, cur_blue_ml, cur_dark_ml)
+                print(potion_quantities)
                 can_produce_any = True
 
         if not can_produce_any: 
