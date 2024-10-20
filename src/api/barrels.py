@@ -22,7 +22,7 @@ class Barrel(BaseModel):
 @router.post("/deliver/{order_id}")
 def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     """ Updates the inventory based on delivered barrels. """
-    
+    print(f"barrels delivered: {barrels_delivered}")
        # Define potion type mapping
     potion_type_map = {
         (1, 0, 0, 0): "red",
@@ -84,7 +84,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
     max_attempts = 10
     attempts = 0
-
+    print(cur_gold)
     # Purchase logic for different sizes
     # Process up to 10 times or until there is no more gold
     while cur_gold > 0 and attempts < max_attempts: 
@@ -94,8 +94,8 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                 if 'SMALL' in barrel.sku:
                     quantity[barrel.sku] += 1
                     barrel.quantity -= 1
-                cur_gold -= barrel.price
-    
+                    cur_gold -= barrel.price
+    print(cur_gold)
     for barrel in wholesale_catalog:
         if(quantity[barrel.sku] != 0):
             purchase_plan.append(
