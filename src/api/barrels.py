@@ -23,59 +23,45 @@ class Barrel(BaseModel):
 def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     """ Updates the inventory based on delivered barrels. """
     
-    # Fetch the data first to ensure we are not overwriting the existing values.
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(
-            "SELECT num_red_ml, num_green_ml, num_blue_ml, num_dark_ml, gold FROM global_inventory"
-        ))
-        
-        row = result.fetchone()
-        if row:
-            cur_num_red_ml = row[0]
-            cur_num_green_ml = row[1]
-            cur_num_blue_ml = row[2]
-            cur_num_dark_ml = row[3]
-            cur_gold = row[4]
+       # Define potion type mapping
+    potion_type_map = {
+        (1, 0, 0, 0): "red",
+        (0, 1, 0, 0): "green",
+        (0, 0, 1, 0): "blue",
+        (0, 0, 0, 1): "dark",
+    }
 
-        # Update the ml (inventory) after the barrels are delivered.
-        for barrel in barrels_delivered:
-            if cur_gold > 0:
-                if barrel.sku.upper() == "SMALL_RED_BARREL":
-                    cur_num_red_ml += barrel.ml_per_barrel * barrel.quantity
-                    cur_gold -= barrel.price * barrel.quantity
-                    print("RED delivered.")
-                elif barrel.sku.upper() == "SMALL_GREEN_BARREL":
-                    cur_num_green_ml += barrel.ml_per_barrel * barrel.quantity
-                    cur_gold -= barrel.price * barrel.quantity
-                    print("GREEN delivered.")
-                elif barrel.sku.upper() == "SMALL_BLUE_BARREL":
-                    cur_num_blue_ml += barrel.ml_per_barrel * barrel.quantity
-                    cur_gold -= barrel.price * barrel.quantity
-                    print("BLUE delivered.")
-                elif barrel.sku.upper() == "SMALL_DARK_BARREL":
-                    cur_num_dark_ml += barrel.ml_per_barrel * barrel.quantity
-                    cur_gold -= barrel.price * barrel.quantity
-                    print("DARK delivered.")
-            else:
-                print("Not delivered.")
-            
-        
-        # Then we update the GI table with the new values
+    gold_paid = 0
+    potion_ml = {"red": 0, "green": 0, "blue": 0, "dark": 0}
+
+    # Update the ml (inventory) after the barrels are delivered.
+    for barrel in barrels_delivered:
+        gold_paid += barrel.price * barrel.quantity
+        potion_type_key = tuple(barrel.potion_type)
+
+        if potion_type_key in potion_type_map:
+            potion_color = potion_type_map[potion_type_key]
+            potion_ml[potion_color] += barrel.ml_per_barrel * barrel.quantity
+        else:
+            raise ValueError("Invalid potion type")
+    
+    with db.engine.begin() as connection:
+    # Then we update the GI table with the new values
         connection.execute(sqlalchemy.text(
-            """UPDATE global_inventory
-                SET num_red_ml = :num_red_ml,
-                num_green_ml = :num_green_ml,
-                num_blue_ml = :num_blue_ml,
-                num_dark_ml = :num_dark_ml,
-                gold = :gold
-                """
-        ), {
-            'num_red_ml' : cur_num_red_ml,
-            'num_green_ml' : cur_num_green_ml,
-            'num_blue_ml' : cur_num_blue_ml,
-            'num_dark_ml' : cur_num_dark_ml,
-            'gold': cur_gold
-        })
+        """UPDATE global_inventory
+            SET num_red_ml = num_red_ml + :red_ml,
+            num_green_ml = num_green_ml + :green_ml,
+            num_blue_ml = num_blue_ml + :blue_ml,
+            num_dark_ml = num_dark_ml + :dark_ml,
+            gold = gold - :gold_paid
+            """
+    ), {
+        'red_ml' : potion_ml["red"],
+        'green_ml' : potion_ml["green"],
+        'blue_ml' : potion_ml["blue"],
+        'dark_ml' : potion_ml["dark"],
+        'gold_paid': gold_paid
+    })
 
     print(f"barrels delivered: {barrels_delivered} order_id: {order_id}")
 
@@ -87,52 +73,36 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     # helps decide when and what potion barrels to purchase from a supplier 
     # (wholesaler) based on your current inventory and available gold.
     """ Purchase a new barrel for r,g,b,d if the potion inventory is low. """
-    print(wholesale_catalog)
+    print(f"barrel catalog: {wholesale_catalog}")
     
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(
-            "SELECT num_red_potions, num_green_potions, num_blue_potions, num_dark_potions, gold FROM global_inventory"
-        ))
-    
-        row = result.fetchone()
-        if row:
-            cur_num_red_potions = row[0]
-            cur_num_green_potions = row[1]
-            cur_num_blue_potions = row[2]
-            cur_num_dark_potions = row[3]
-            cur_gold = row[4]
+        result = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory"))
+        cur_gold = result.scalar()
 
     purchase_plan = []
-    #purchased_skus = set()
+    quantity = {barrel.sku: 0 for barrel in wholesale_catalog}
+
+    max_attempts = 5
+    times = 0
 
     # Purchase logic for different sizes
-    for barrel in wholesale_catalog:
-        # if barrel.sku.upper() in purchased_skus:
-        #     continue # Skip
-        # For Red Potions
-        if barrel.sku.upper() == "SMALL_RED_BARREL" and cur_num_red_potions < 10 and cur_gold >= barrel.price:
-            purchase_plan.append({"sku": barrel.sku, "quantity": 1})
-            cur_gold -= barrel.price
-            # purchased_skus.add(barrel.sku)
-            print("Bought Red Barrels")
-        # For Green Potions
-        if barrel.sku.upper() == "SMALL_GREEN_BARREL" and cur_num_green_potions < 10 and cur_gold >= barrel.price:
-            purchase_plan.append({"sku": barrel.sku, "quantity": 1})
-            cur_gold -= barrel.price
-            # purchased_skus.add(barrel.sku)
-            print("Bought Green Barrels")
-        # For Blue Potions
-        if barrel.sku.upper() == "SMALL_BLUE_BARREL" and cur_num_blue_potions < 10 and cur_gold >= barrel.price:
-            purchase_plan.append({"sku": barrel.sku, "quantity": 1})
-            cur_gold -= barrel.price
-            # purchased_skus.add(barrel.sku)
-            print("Bought Blue Barrels")
-        # For Dark Potions
-        if barrel.sku.upper() == "SMALL_DARK_BARREL" and cur_num_dark_potions < 10 and cur_gold >= barrel.price:
-            purchase_plan.append({"sku": barrel.sku, "quantity": 1})
-            cur_gold -= barrel.price
-            # purchased_skus.add(barrel.sku)
-            print("Bought Dark Barrels")
+    # Process up to 10 times or until there is no more gold
+    while cur_gold > 99 and times < max_attempts: 
+        times += 1
+        for barrel in wholesale_catalog:
+            if cur_gold >= barrel.price and barrel.quantity > 0:
+                quantity[barrel.sku] += 1
+                cur_gold -= barrel.price
+                barrel.quantity -= 1
 
+    for barrel in wholesale_catalog:
+        if(quantity[barrel.sku] != 0):
+            purchase_plan.append(
+                {
+                    "sku":barrel.sku,
+                    "quantity": quantity[barrel.sku]
+                }
+            )
+    print(f"let's see my purchase plan: {purchase_plan}")
     return purchase_plan if purchase_plan else [] # Return an empty plan if purchase is not needed
 
