@@ -127,7 +127,6 @@ def create_cart(new_cart: Customer):
 
         if not customer_id:
             raise ValueError("Customer does not exist. Please add the customer through post_visits first.")
-
         # Now, create a new cart for this customer
         create_cart_sql = """
         INSERT INTO carts (customer_id, created_at)
@@ -168,20 +167,21 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
         potion_id, available_inventory = row
 
     # Ensure requested quantity is within available stock
+    if cart_item.quantity < available_inventory:
+        # Update or insert the cart_items record
+        with db.engine.begin() as connection:
+            connection.execute(sqlalchemy.text(
+                "INSERT INTO cart_items (cart_id, potion_id, qty, added_at) "
+                "VALUES (:cart_id, :potion_id, :qty, now()) "
+                "ON CONFLICT (cart_id, potion_id) DO UPDATE SET qty = :qty"
+            ), {
+                "cart_id": cart_id,
+                "potion_id": potion_id,
+                "qty": cart_item.quantity,
+            })
+
     if cart_item.quantity > available_inventory:
         return {"success": False, "message": "Not enough stock to add the potion to the cart."}
-
-    # Update or insert the cart_items record
-    with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text(
-            "INSERT INTO cart_items (cart_id, potion_id, qty, added_at) "
-            "VALUES (:cart_id, :potion_id, :qty, now()) "
-            "ON CONFLICT (cart_id, potion_id) DO UPDATE SET qty = :qty"
-        ), {
-            "cart_id": cart_id,
-            "potion_id": potion_id,
-            "qty": cart_item.quantity,
-        })
 
     return {
         "success": True,
@@ -241,6 +241,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         # Deduct the total price from the current gold
         current_gold += total_price
 
+        print
         # Update global_inventory table for the gold
         connection.execute(sqlalchemy.text(
             "UPDATE global_inventory SET gold = :new_gold"
@@ -248,6 +249,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             "new_gold": current_gold
         })
 
+    print(f"total_potions_bought: {total_potions_bought}, total_gold_paid: {total_potions_bought}")
     return {
         "total_potions_bought": total_potions_bought,
         "total_gold_paid": total_price
