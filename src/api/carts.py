@@ -137,6 +137,7 @@ def create_cart(new_cart: Customer):
             "customer_id": customer_id
         })
         cart_id = cart_result.scalar()
+        print(f"Cart_id: {cart_id}")
 
     return {
         "cart_id": cart_id,
@@ -154,35 +155,41 @@ class CartItem(BaseModel):
 def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     """ Customers can add multiple items of green potions. Check cart and inventory first.  """
     
-    # Fetch potion details from potion_inventory
-    with db.engine.begin() as connection:
-        potion_result = connection.execute(sqlalchemy.text(
-            "SELECT potion_id, inventory FROM potions_inventory WHERE sku = :item_sku"
-        ), {"item_sku": item_sku})
-        row = potion_result.fetchone()
+    # # Fetch potion details from potion_inventory
+    # with db.engine.begin() as connection:
+    #     potion_result = connection.execute(sqlalchemy.text(
+    #         "SELECT potion_id FROM potions_inventory WHERE sku = :item_sku"
+    #     ), {"item_sku": item_sku})
+    #     row = potion_result.fetchone()
 
-        if not row:
-            return {"success": False, "message": "Potion not found in inventory."}, 404
+    #     if not row:
+    #         return {"success": False, "message": "Potion not found in inventory."}, 404
 
-        potion_id, available_inventory = row
+    #     potion_id = row[0]
 
     # Ensure requested quantity is within available stock
-    if cart_item.quantity < available_inventory:
-        # Update or insert the cart_items record
-        with db.engine.begin() as connection:
-            connection.execute(sqlalchemy.text(
-                "INSERT INTO cart_items (cart_id, potion_id, qty, added_at) "
-                "VALUES (:cart_id, :potion_id, :qty, now()) "
-                "ON CONFLICT (cart_id, potion_id) DO UPDATE SET qty = :qty"
-            ), {
-                "cart_id": cart_id,
-                "potion_id": potion_id,
-                "qty": cart_item.quantity,
-            })
+    #if cart_item.quantity > available_inventory:
+    #    return {"success": False, "message": "Not enough stock to add the potion to the cart."}
+    
+    # Update or insert the cart_items record
+    with db.engine.begin() as connection:
+        connection.execute(sqlalchemy.text(
+            """
+            INSERT INTO cart_items (cart_id, potion_id, qty, added_at)
+            SELECT :cart_id, potions_inventory.potion_id, :qty, now()
+            FROM potions_inventory
+            WHERE potions_inventory.sku = :item_sku
+            ON CONFLICT (cart_id, potion_id) DO UPDATE SET qty = :qty
+            """
+        ), {
+            "cart_id": cart_id,
+            "qty": cart_item.quantity,
+            "item_sku": item_sku
+        })
 
-    if cart_item.quantity > available_inventory:
-        return {"success": False, "message": "Not enough stock to add the potion to the cart."}
-
+    print(f"cart id: {cart_id}")
+    print(f"CI quantity: {cart_item.quantity} and item sku: {item_sku}")
+    
     return {
         "success": True,
         "message": "Potion added to cart",
@@ -199,10 +206,12 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     # Check if the cart exists
     with db.engine.begin() as connection:
         cart_items_result = connection.execute(sqlalchemy.text(
-            "SELECT ci.potion_id, ci.qty, pi.sku, pi.price, pi.inventory "
-            "FROM cart_items ci "
-            "JOIN potions_inventory pi ON ci.potion_id = pi.potion_id "
-            "WHERE ci.cart_id = :cart_id"
+            """
+            SELECT ci.potion_id, ci.qty, pi.sku, pi.price, pi.inventory
+            FROM cart_items ci 
+            JOIN potions_inventory pi ON ci.potion_id = pi.potion_id 
+            WHERE ci.cart_id = :cart_id
+            """
         ), {"cart_id": cart_id})
 
         cart_items = cart_items_result.fetchall()
@@ -249,7 +258,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             "new_gold": current_gold
         })
 
-    print(f"total_potions_bought: {total_potions_bought}, total_gold_paid: {total_potions_bought}")
+    print(f"total_potions_bought: {total_potions_bought}, total_gold_paid: {total_price}")
     return {
         "total_potions_bought": total_potions_bought,
         "total_gold_paid": total_price
