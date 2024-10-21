@@ -174,23 +174,33 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     
     # Update or insert the cart_items record
     with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text(
-            """
+        # Define the SQL statement to insert or update cart items
+        create_cart_items_sql = """
             INSERT INTO cart_items (cart_id, potion_id, qty, added_at)
             SELECT :cart_id, potions_inventory.potion_id, :qty, now()
             FROM potions_inventory
             WHERE potions_inventory.sku = :item_sku
             ON CONFLICT (cart_id, potion_id) DO UPDATE SET qty = :qty
-            """
-        ), {
-            "cart_id": cart_id,
-            "qty": cart_item.quantity,
-            "item_sku": item_sku
-        })
+            RETURNING id
+        """
 
-    print(f"cart id in set item quantity: {cart_id}, cart item id: {cart_item.id}")
+        # Execute the SQL statement with parameters
+        cart_items_result = connection.execute(
+            sqlalchemy.text(create_cart_items_sql), 
+            {
+                "cart_id": cart_id,
+                "qty": cart_item.quantity,
+                "item_sku": item_sku
+            }
+        )
+
+        # Retrieve the cart item ID from the result
+        cart_item_id = cart_items_result.scalar()
+        print(f"Cart item ID in create cart: {cart_item_id}")
+
+    print(f"cart id in set item quantity: {cart_id}, cart item id: {cart_item_id}")
     print(f"CI quantity: {cart_item.quantity} and item sku: {item_sku}")
-    print(f"customer who added potions to the cart: {Customer.customer_name}")
+    #print(f"customer who added potions to the cart: {customer_name}")
     
     return {
         "success": True,
@@ -226,15 +236,19 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         ))
         current_gold = gold_result.scalar()
 
+    print(f"gold before customers check out: {current_gold}")
+    
     total_potions_bought = 0
     total_price = 0
 
     # Iterate through each item in the cart
     with db.engine.begin() as connection:
+        
         for potion_id, quantity, sku, price_per_potion, available_inventory in cart_items:
-            # Check if there is enough stock for each item
-            if quantity > available_inventory:
-                return {"message": f"Not enough stock for {sku}"}
+            
+            # # Check if there is enough stock for each item
+            # if quantity > available_inventory:
+            #     return {"message": f"Not enough stock for {sku}"}
 
             # Deduct from inventory and update the total calculations
             new_inventory = available_inventory - quantity
@@ -261,6 +275,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         })
 
     print(f"total_potions_bought: {total_potions_bought}, total_gold_paid: {total_price}")
+    
     return {
         "total_potions_bought": total_potions_bought,
         "total_gold_paid": total_price
