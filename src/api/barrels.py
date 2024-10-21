@@ -84,7 +84,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
     max_attempts = 10
     attempts = 0
-    print(cur_gold)
+    print(f"Current Gold (barrels.py) before purchasing: {cur_gold}")
     # Purchase logic for different sizes
     # Process up to 10 times or until there is no more gold
     while cur_gold > 0 and attempts < max_attempts: 
@@ -95,7 +95,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     quantity[barrel.sku] += 1
                     barrel.quantity -= 1
                     cur_gold -= barrel.price
-    print(cur_gold)
+    print(f"Current Gold (barrels.py): {cur_gold}")
     for barrel in wholesale_catalog:
         if(quantity[barrel.sku] != 0):
             purchase_plan.append(

@@ -137,7 +137,8 @@ def create_cart(new_cart: Customer):
             "customer_id": customer_id
         })
         cart_id = cart_result.scalar()
-        print(f"Cart_id: {cart_id}")
+        print(f"Cart_id in create cart: {cart_id}")
+        print(f"Customer who created the cart: {new_cart.customer_name}")
 
     return {
         "cart_id": cart_id,
@@ -187,8 +188,9 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
             "item_sku": item_sku
         })
 
-    print(f"cart id: {cart_id}")
+    print(f"cart id in set item quantity: {cart_id}, cart item id: {cart_item.id}")
     print(f"CI quantity: {cart_item.quantity} and item sku: {item_sku}")
+    print(f"customer who added potions to the cart: {Customer.customer_name}")
     
     return {
         "success": True,
@@ -250,7 +252,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         # Deduct the total price from the current gold
         current_gold += total_price
 
-        print
+        print(f"current gold in check out before updating in sql:{current_gold}")
         # Update global_inventory table for the gold
         connection.execute(sqlalchemy.text(
             "UPDATE global_inventory SET gold = :new_gold"
