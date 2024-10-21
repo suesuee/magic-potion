@@ -214,66 +214,45 @@ class CartCheckout(BaseModel):
 @router.post("/{cart_id}/checkout")
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ Make sure if potions are in the inventory before checking out """
-
-    # Check if the cart exists
-    with db.engine.begin() as connection:
-        cart_items_result = connection.execute(sqlalchemy.text(
-            """
-            SELECT ci.potion_id, ci.qty, pi.sku, pi.price, pi.inventory
-            FROM cart_items ci 
-            JOIN potions_inventory pi ON ci.potion_id = pi.potion_id 
-            WHERE ci.cart_id = :cart_id
-            """
-        ), {"cart_id": cart_id})
-
-        cart_items = cart_items_result.fetchall()
-        if not cart_items:
-            return {"message": "Cart not found or is empty"}, 404
-
-        # Fetch current gold
-        gold_result = connection.execute(sqlalchemy.text(
-            "SELECT gold FROM global_inventory"
-        ))
-        current_gold = gold_result.scalar()
-
-    print(f"gold before customers check out: {current_gold}")
-    
     total_potions_bought = 0
     total_price = 0
 
-    # Iterate through each item in the cart
     with db.engine.begin() as connection:
-        
-        for potion_id, quantity, sku, price_per_potion, available_inventory in cart_items:
-            
-            # # Check if there is enough stock for each item
-            # if quantity > available_inventory:
-            #     return {"message": f"Not enough stock for {sku}"}
-
-            # Deduct from inventory and update the total calculations
-            new_inventory = available_inventory - quantity
-            total_potions_bought += quantity
-            total_price += quantity * price_per_potion
-
-            # Update potion_inventory table
-            connection.execute(sqlalchemy.text(
-                "UPDATE potions_inventory SET inventory = :new_inventory WHERE potion_id = :potion_id"
-            ), {
-                "new_inventory": new_inventory,
-                "potion_id": potion_id
-            })
-
-        # Deduct the total price from the current gold
-        current_gold += total_price
-
-        print(f"current gold in check out before updating in sql:{current_gold}")
-        # Update global_inventory table for the gold
         connection.execute(sqlalchemy.text(
-            "UPDATE global_inventory SET gold = :new_gold"
-        ), {
-            "new_gold": current_gold
-        })
+            """
+            UPDATE potions_inventory
+            SET inventory = potions_inventory.inventory - cart_items.qty
+            FROM cart_items
+            WHERE potions_inventory.potion_id = cart_items.potion_id
+            AND cart_items.cart_id = :cart_id;
+            """
+        ), {"cart_id": cart_id})
+        
+        total_potions_bought = connection.execute(sqlalchemy.text(
+            """
+            SELECT SUM(qty)
+            FROM cart_items
+            WHERE cart_id = :cart_id
+            """
+        ), {"cart_id": cart_id}).scalar_one()
 
+        total_price = connection.execute(sqlalchemy.text(
+            """
+            SELECT SUM(qty * price)
+            FROM cart_items
+            JOIN potions_inventory ON potions_inventory.potion_id = cart_items.potion_id
+            WHERE cart_id = :cart_id
+            """
+        ), {"cart_id": cart_id}).scalar_one()
+
+        connection.execute(sqlalchemy.text(
+            """
+            UPDATE global_inventory
+            SET gold = gold + :total_gold_price
+            """
+        ), {"total_gold_price": total_price})
+        
+      
     print(f"total_potions_bought: {total_potions_bought}, total_gold_paid: {total_price}")
     
     return {

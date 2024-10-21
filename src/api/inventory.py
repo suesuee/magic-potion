@@ -20,8 +20,14 @@ def get_inventory():
             """
             SELECT num_red_ml, num_green_ml, num_blue_ml, num_dark_ml, gold 
             FROM global_inventory
-            """)).first()
-        total_potions = sum(row.inventory for row in connection.execute(sqlalchemy.text("SELECT inventory FROM potions_inventory")))
+            """
+        )).first()
+        total_potions = connection.execute(sqlalchemy.text(
+            """
+            SELECT COALESCE(SUM(inventory), 0)
+            FROM potions_inventory
+            """
+        )).scalar()
     
     total_ml = global_inventory.num_red_ml + global_inventory.num_green_ml + global_inventory.num_blue_ml + global_inventory.num_dark_ml
 
