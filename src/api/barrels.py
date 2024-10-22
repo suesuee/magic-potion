@@ -95,7 +95,9 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     quantity[barrel.sku] += 1
                     barrel.quantity -= 1
                     cur_gold -= barrel.price
+    
     print(f"Current Gold (barrels.py): {cur_gold}")
+    
     for barrel in wholesale_catalog:
         if(quantity[barrel.sku] != 0):
             purchase_plan.append(
