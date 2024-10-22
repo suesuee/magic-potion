@@ -74,14 +74,14 @@ def get_bottle_plan():
 
     for potion in potion_list:
         potion_quantities[potion.sku] = 0
-        #total_potion_made += potion.inventory
+        
     num_potions = len(potion_list)
-    count = 0;
+    
     print(f"Number of potions: {num_potions}")
     while num_potions > 0:
         num_potions -= 1
         for potion in potion_list:
-            if (potion_quantities[potion.sku] + potion.inventory < 40 and
+            if (potion_quantities[potion.sku] + potion.inventory < 31 and
                 potion.potion_type[0] <= cur_red_ml and
                 potion.potion_type[1] <= cur_green_ml and
                 potion.potion_type[2] <= cur_blue_ml and
@@ -93,7 +93,7 @@ def get_bottle_plan():
                 cur_dark_ml -= potion.potion_type[3]
 
                 potion_quantities[potion.sku] += 1
-                # total_potion_made += 1
+                
                 print(f"Number of potions inside the loop: {num_potions}")
                 print(f"Below are the current mls:")
                 print(cur_red_ml, cur_green_ml, cur_blue_ml, cur_dark_ml)
