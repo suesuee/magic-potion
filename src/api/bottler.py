@@ -51,6 +51,7 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
         {"red_ml": red_ml, "green_ml": green_ml, "blue_ml": blue_ml, "dark_ml": dark_ml})    
 
     print(f"Potions delivered: {potions_delivered}, Order ID: {order_id}")
+    print(f"New potions delivered quantity: {new_potions}")
     return "OK"
 
 
