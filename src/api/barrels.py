@@ -87,7 +87,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     print(f"Current Gold (barrels.py) before purchasing: {cur_gold}")
     # Purchase logic for different sizes
     # Process up to 10 times or until there is no more gold
-    while cur_gold >= 100 and attempts < max_attempts: 
+    while cur_gold >= 800 and attempts < max_attempts: 
         attempts += 1
         for barrel in wholesale_catalog:
             if cur_gold >= barrel.price:
