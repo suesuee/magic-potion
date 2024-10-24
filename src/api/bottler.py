@@ -81,7 +81,7 @@ def get_bottle_plan():
     while num_potions > 0:
         num_potions -= 1
         for potion in potion_list:
-            if (potion_quantities[potion.sku] + potion.inventory < 10 and
+            if (potion_quantities[potion.sku] + potion.inventory < 7 and
                 potion.potion_type[0] <= cur_red_ml and
                 potion.potion_type[1] <= cur_green_ml and
                 potion.potion_type[2] <= cur_blue_ml and
