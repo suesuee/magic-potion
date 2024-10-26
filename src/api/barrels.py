@@ -23,7 +23,8 @@ class Barrel(BaseModel):
 def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     """ Updates the inventory based on delivered barrels. """
     print(f"barrels delivered: {barrels_delivered}")
-       # Define potion type mapping
+    
+    # Define potion type mapping
     potion_type_map = {
         (1, 0, 0, 0): "red",
         (0, 1, 0, 0): "green",
@@ -46,7 +47,6 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
             raise ValueError("Invalid potion type")
     
     with db.engine.begin() as connection:
-    # Then we update the GI table with the new values
         connection.execute(sqlalchemy.text(
         """UPDATE global_inventory
             SET num_red_ml = num_red_ml + :red_ml,
@@ -70,8 +70,6 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
 # Gets called once a day
 @router.post("/plan")
 def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
-    # helps decide when and what potion barrels to purchase from a supplier 
-    # (wholesaler) based on your current inventory and available gold.
     """ Purchase a new barrel for r,g,b,d if the potion inventory is low. """
     print(f"barrel catalog: {wholesale_catalog}")
     
@@ -85,8 +83,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     max_attempts = 5
     attempts = 0
     print(f"Current Gold (barrels.py) before purchasing: {cur_gold}")
-    # Purchase logic for different sizes
-    # Process up to 10 times or until there is no more gold
+    # Process up to 5 times or until there is no more gold
     while cur_gold >= 0 and attempts < max_attempts: 
         attempts += 1
         for barrel in wholesale_catalog:
