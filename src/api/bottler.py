@@ -62,7 +62,12 @@ def get_bottle_plan():
     """
 
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT num_red_ml, num_green_ml, num_blue_ml, num_dark_ml FROM global_inventory"))
+        result = connection.execute(sqlalchemy.text(
+            """
+            SELECT num_red_ml, num_green_ml, num_blue_ml, num_dark_ml 
+            FROM global_inventory
+            """)
+        )
         potion_data = connection.execute(sqlalchemy.text("SELECT * from potions_inventory"))
 
     global_inventory = result.first()

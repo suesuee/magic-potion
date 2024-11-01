@@ -22,6 +22,7 @@ class Barrel(BaseModel):
 @router.post("/deliver/{order_id}")
 def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     """ Updates the inventory based on delivered barrels. """
+    
     print(f"barrels delivered: {barrels_delivered}")
     
     # Define potion type mapping
@@ -48,13 +49,14 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text(
-        """UPDATE global_inventory
-            SET num_red_ml = num_red_ml + :red_ml,
-            num_green_ml = num_green_ml + :green_ml,
-            num_blue_ml = num_blue_ml + :blue_ml,
-            num_dark_ml = num_dark_ml + :dark_ml,
-            gold = gold - :gold_paid
-            """
+        """
+        UPDATE global_inventory
+        SET num_red_ml = num_red_ml + :red_ml,
+        num_green_ml = num_green_ml + :green_ml,
+        num_blue_ml = num_blue_ml + :blue_ml,
+        num_dark_ml = num_dark_ml + :dark_ml,
+        gold = gold - :gold_paid
+        """
     ), {
         'red_ml' : potion_ml["red"],
         'green_ml' : potion_ml["green"],
@@ -71,6 +73,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
 @router.post("/plan")
 def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ Purchase a new barrel for r,g,b,d if the potion inventory is low. """
+    
     print(f"barrel catalog: {wholesale_catalog}")
     
     with db.engine.begin() as connection:
