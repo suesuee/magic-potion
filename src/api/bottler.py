@@ -66,7 +66,8 @@ def get_bottle_plan():
             """
             SELECT num_red_ml, num_green_ml, num_blue_ml, num_dark_ml 
             FROM global_inventory
-            """)
+            """
+            )
         )
         potion_data = connection.execute(sqlalchemy.text("SELECT * from potions_inventory"))
 
@@ -102,7 +103,7 @@ def get_bottle_plan():
                 print(f"Number of potions inside the loop: {num_potions}")
                 print(f"Below are the current mls:")
                 print(cur_red_ml, cur_green_ml, cur_blue_ml, cur_dark_ml)
-                print(f"This are potion quantities: {potion_quantities}")
+                print(f"These are potion quantities: {potion_quantities}")
     
     for potion in potion_list:
         if potion_quantities[potion.sku] > 0:
