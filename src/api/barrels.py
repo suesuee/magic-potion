@@ -45,6 +45,8 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
         if potion_type_key in potion_type_map:
             potion_color = potion_type_map[potion_type_key]
             potion_ml[potion_color] += barrel.ml_per_barrel * barrel.quantity
+
+    print(f"total cost or total gold paid (final): {total_cost}")
     
     # with db.engine.begin() as connection:
     #     connection.execute(sqlalchemy.text(
