@@ -18,42 +18,22 @@ def reset():
     """
     with db.engine.begin() as connection:
 
-        connection.execute(sqlalchemy.text(
-            """
-            TRUNCATE TABLE ml_ledger
-            """
-        ))    
-
-        connection.execute(sqlalchemy.text(
-            """
-            TRUNCATE TABLE potion_ledger
-            """
-        ))
-
-        connection.execute(sqlalchemy.text(
-            """
-            TRUNCATE TABLE gold_ledger
-            """
-        ))
+       # Clear all ledger tables
+        connection.execute(sqlalchemy.text("TRUNCATE TABLE ml_ledger"))
+        connection.execute(sqlalchemy.text("TRUNCATE TABLE potion_ledger"))
+        connection.execute(sqlalchemy.text("TRUNCATE TABLE gold_ledger"))
         
+        # Initialize gold to 100 in the ledger
         connection.execute(sqlalchemy.text(
             """
             INSERT INTO gold_ledger(gold_change)
-            VALUES(100)
+            VALUES (100)
             """
         ))
 
-        connection.execute(sqlalchemy.text(
-            """
-            TRUNCATE TABLE cart_items
-            """
-        ))
+        # Clear carts and cart_items
+        connection.execute(sqlalchemy.text("TRUNCATE TABLE carts CASCADE"))
 
-        connection.execute(sqlalchemy.text(
-            """
-            TRUNCATE TABLE carts
-            """
-        ))
 
     return {"message": "Shop has been reset to 0 for inventory and 100 for gold."}
 
