@@ -144,12 +144,12 @@ def get_bottle_plan():
     num_potions = len(potion_list)
     
     print(f"Number of potions: {num_potions}")
-    print(f"Potions in the loop: {potion}")
+    
     while num_potions > 0:
         num_potions -= 1
 
         for potion in potion_list:
-
+            print(f"Potions in the loop: {potion}")
             print(f"potion.potion_type[0]: {potion.potion_type[0]}")
             print(f"potion.potion_type[1]: {potion.potion_type[1]}")
             print(f"potion.potion_type[2]: {potion.potion_type[2]}")
