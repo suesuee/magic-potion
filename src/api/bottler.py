@@ -116,7 +116,7 @@ def get_bottle_plan():
             """
             SELECT potions_inventory.potion_id, potions_inventory.sku, SUM(potion_ledger.potion_change), potions_inventory.potion_type
             FROM potions_inventory
-            JOIN potion_ledger ON potions_inventory.potion_id = potion_ledger.id
+            JOIN potion_ledger ON potions_inventory.potion_id = potion_ledger.potion_id
             GROUP BY potions_inventory.potion_id
             """
         )).fetchall()
@@ -133,6 +133,7 @@ def get_bottle_plan():
     #Both ways will give me the access to columns
     
     potion_list = [potion for potion in potion_data]
+    print(f"get bottler plan's potion_list: {potion_list}")
     # total_potion_made = 0
     my_bottle_plan = []
     potion_quantities = {}

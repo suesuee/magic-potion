@@ -14,7 +14,14 @@ def get_catalog():
     my_catalog = []
 
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT * FROM potions_inventory"))
+        result = connection.execute(sqlalchemy.text(
+            """
+            SELECT SUM(potion_ledger.potion_change) AS inventory, sku, price, potion_type
+            FROM potions_inventory
+            JOIN potion_ledger ON potion_ledger.potion_id = potions_inventory.potion_id
+            GROUP BY potions_inventory.potion_id
+            """
+        ))
 
     for row in result:
         if (row.inventory > 0):

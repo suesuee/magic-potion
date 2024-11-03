@@ -51,7 +51,7 @@ def get_inventory():
         gold = connection.execute(sqlalchemy.text(
             """
             SELECT SUM(gold_change)
-            FROM ml_ledger
+            FROM gold_ledger
             """
         )
     ).scalar_one()
