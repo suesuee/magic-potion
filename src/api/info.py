@@ -17,5 +17,5 @@ def post_time(timestamp: Timestamp):
     """
     Share current time.
     """
-    return "OK"
+    return {"received_day": timestamp.day, "received_hour": timestamp.hour}
 
