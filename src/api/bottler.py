@@ -138,9 +138,9 @@ def get_bottle_plan():
         for potion in potion_list:
 
             print(f"potion.potion_type[0]: {potion.potion_type[0]}")
-            print(f"potion.potion_type[1]: {potion.potion_type[0]}")
-            print(f"potion.potion_type[2]: {potion.potion_type[0]}")
-            print(f"potion.potion_type[3]: {potion.potion_type[0]}")
+            print(f"potion.potion_type[1]: {potion.potion_type[1]}")
+            print(f"potion.potion_type[2]: {potion.potion_type[2]}")
+            print(f"potion.potion_type[3]: {potion.potion_type[3]}")
 
             if (potion_quantities[potion.sku] + potion.inventory < 7 and
                 potion.potion_type[0] <= cur_red_ml and
