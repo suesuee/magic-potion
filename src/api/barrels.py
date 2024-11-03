@@ -23,7 +23,7 @@ class Barrel(BaseModel):
 def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     """ Updates the inventory based on delivered barrels. """
     
-    print(f"barrels delivered: {barrels_delivered}")
+    print(f"(first) barrels delivered: {barrels_delivered} order_id: {order_id}")
     
     # Define potion type mapping
     potion_type_map = {
@@ -34,38 +34,55 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     }
 
     gold_paid = 0
+    total_cost = 0
     potion_ml = {"red": 0, "green": 0, "blue": 0, "dark": 0}
 
     # Update the ml (inventory) after the barrels are delivered.
     for barrel in barrels_delivered:
-        gold_paid += barrel.price * barrel.quantity
+        total_cost += barrel.price * barrel.quantity
         potion_type_key = tuple(barrel.potion_type)
 
         if potion_type_key in potion_type_map:
             potion_color = potion_type_map[potion_type_key]
             potion_ml[potion_color] += barrel.ml_per_barrel * barrel.quantity
-        else:
-            raise ValueError("Invalid potion type")
     
+    # with db.engine.begin() as connection:
+    #     connection.execute(sqlalchemy.text(
+    #     """
+    #     UPDATE global_inventory
+    #     SET num_red_ml = num_red_ml + :red_ml,
+    #     num_green_ml = num_green_ml + :green_ml,
+    #     num_blue_ml = num_blue_ml + :blue_ml,
+    #     num_dark_ml = num_dark_ml + :dark_ml,
+    #     gold = gold - :gold_paid
+    #     """
+    # ), {
+    #     'red_ml' : potion_ml["red"],
+    #     'green_ml' : potion_ml["green"],
+    #     'blue_ml' : potion_ml["blue"],
+    #     'dark_ml' : potion_ml["dark"],
+    #     'gold_paid': gold_paid
+    # })
+
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text(
-        """
-        UPDATE global_inventory
-        SET num_red_ml = num_red_ml + :red_ml,
-        num_green_ml = num_green_ml + :green_ml,
-        num_blue_ml = num_blue_ml + :blue_ml,
-        num_dark_ml = num_dark_ml + :dark_ml,
-        gold = gold - :gold_paid
-        """
-    ), {
-        'red_ml' : potion_ml["red"],
-        'green_ml' : potion_ml["green"],
-        'blue_ml' : potion_ml["blue"],
-        'dark_ml' : potion_ml["dark"],
-        'gold_paid': gold_paid
-    })
+            """
+            INSERT INTO gold_ledger(gold_change)
+            VALUES (:total_cost)
+            """
+        ),
+        [{"total_cost": -total_cost}]
+    )
+        connection.execute(sqlalchemy.text(
+            """
+            INSERT INTO ml_ledger(red_ml_change, green_ml_change, blue_ml_change, dark_ml_change)
+            VALUES (:red_ml, :green_ml, :blue_ml, :dark_ml)
+            """
+        ),
+        [{"red_ml": potion_ml["red"], "green_ml": potion_ml["green"], "blue_ml": potion_ml["blue"], "dark_ml": potion_ml["dark"]}]
+    )
 
-    print(f"barrels delivered: {barrels_delivered} order_id: {order_id}")
+    print(f"(second) barrels delivered: {barrels_delivered} order_id: {order_id}")
 
     return {"message": "Delivered barrels and added ml to inventory of all potions."}
 
@@ -76,9 +93,17 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     
     print(f"barrel catalog: {wholesale_catalog}")
     
+    # with db.engine.begin() as connection:
+    #     result = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory"))
+    #     cur_gold = result.scalar()
+
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory"))
-        cur_gold = result.scalar()
+        cur_gold = connection.execute(sqlalchemy.text(
+            """
+            SELECT SUM(gold_change)
+            FROM gold_ledger
+            """
+        )).scalar_one()
 
     purchase_plan = []
     quantity = {barrel.sku: 0 for barrel in wholesale_catalog}
@@ -87,7 +112,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     attempts = 0
     print(f"Current Gold (barrels.py) before purchasing: {cur_gold}")
     # Process up to 5 times or until there is no more gold
-    while cur_gold >= 5000 and attempts < max_attempts: 
+    while cur_gold >= 3600 and attempts < max_attempts: 
         attempts += 1
         for barrel in wholesale_catalog:
             if cur_gold >= barrel.price:

@@ -14,28 +14,79 @@ router = APIRouter(
 @router.get("/audit")
 def get_inventory():
     """ Get what we have currently from the database """
+    with db.engine.begin() as connection: 
+        
+        num_red_ml = connection.execute(sqlalchemy.text(
+            """
+            SELECT SUM(red_ml_change)
+            FROM ml_ledger
+            """
+        )
+    ).scalar_one()
 
-    with db.engine.begin() as connection:
-        global_inventory = connection.execute(sqlalchemy.text(
+        num_green_ml = connection.execute(sqlalchemy.text(
             """
-            SELECT num_red_ml, num_green_ml, num_blue_ml, num_dark_ml, gold 
-            FROM global_inventory
+            SELECT SUM(green_ml_change)
+            FROM ml_ledger
             """
-        )).first()
+        )
+    ).scalar_one()
+        
+        num_blue_ml = connection.execute(sqlalchemy.text(
+            """
+            SELECT SUM(blue_ml_change)
+            FROM ml_ledger
+            """
+        )
+    ).scalar_one()
+        
+        num_dark_ml = connection.execute(sqlalchemy.text(
+            """
+            SELECT SUM(dark_ml_change)
+            FROM ml_ledger
+            """
+        )
+    ).scalar_one()
+        
+        gold = connection.execute(sqlalchemy.text(
+            """
+            SELECT SUM(gold_change)
+            FROM ml_ledger
+            """
+        )
+    ).scalar_one()
+        
+        
         total_potions = connection.execute(sqlalchemy.text(
             """
-            SELECT COALESCE(SUM(inventory), 0)
-            FROM potions_inventory
+            SELECT SUM(potion_change)
+            FROM potion_ledger
             """
-        )).scalar()
-    
-    total_ml = global_inventory.num_red_ml + global_inventory.num_green_ml + global_inventory.num_blue_ml + global_inventory.num_dark_ml
+        )
+    ).scalar_one()
+                                
 
+    # with db.engine.begin() as connection:
+    #     global_inventory = connection.execute(sqlalchemy.text(
+    #         """
+    #         SELECT num_red_ml, num_green_ml, num_blue_ml, num_dark_ml, gold 
+    #         FROM global_inventory
+    #         """
+    #     )).first()
+    #     total_potions = connection.execute(sqlalchemy.text(
+    #         """
+    #         SELECT COALESCE(SUM(inventory), 0)
+    #         FROM potions_inventory
+    #         """
+    #     )).scalar()
+    
+    # total_ml = global_inventory.num_red_ml + global_inventory.num_green_ml + global_inventory.num_blue_ml + global_inventory.num_dark_ml
+    total_ml = num_red_ml + num_green_ml + num_blue_ml + num_dark_ml
 
     return {
         "number_of_potions": total_potions,
         "ml_in_barrels": total_ml,
-        "gold": global_inventory.gold
+        "gold": gold
     }
 
 # Gets called once a day

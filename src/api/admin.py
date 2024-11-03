@@ -17,28 +17,43 @@ def reset():
     inventory, and all barrels are removed from inventory. Carts are all reset.
     """
     with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text("""
-            UPDATE global_inventory 
-            SET num_green_ml = 0, 
-                num_red_ml = 0, 
-                num_blue_ml = 0, 
-                num_dark_ml = 0, 
-                gold = 100
+
+        connection.execute(sqlalchemy.text(
             """
-            ))
+            TURNCATE TABLE ml_ledger
+            """
+        ))    
+
+        connection.execute(sqlalchemy.text(
+            """
+            TURNCATE TABLE potion_ledger
+            """
+        ))
+
+        connection.execute(sqlalchemy.text(
+            """
+            TURNCATE TABLE gold_ledger
+            """
+        ))
         
-        connection.execute(sqlalchemy.text("""
-            UPDATE potions_inventory
-            SET inventory = 0
-        """))
+        connection.execute(sqlalchemy.text(
+            """
+            INSERT INTO gold_ledger(gold_change)
+            VALUES(100)
+            """
+        ))
 
-        connection.execute(sqlalchemy.text("""
+        connection.execute(sqlalchemy.text(
+            """
             TURNCATE TABLE cart_items
-        """))
+            """
+        ))
 
-        connection.execute(sqlalchemy.text("""
+        connection.execute(sqlalchemy.text(
+            """
             TURNCATE TABLE carts
-        """))
+            """
+        ))
 
     return {"message": "Shop has been reset to 0 for inventory and 100 for gold."}
 

@@ -218,15 +218,24 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     total_price = 0
 
     with db.engine.begin() as connection:
+        # connection.execute(sqlalchemy.text(
+        #     """
+        #     UPDATE potions_inventory
+        #     SET inventory = potions_inventory.inventory - cart_items.qty
+        #     FROM cart_items
+        #     WHERE potions_inventory.potion_id = cart_items.potion_id
+        #     AND cart_items.cart_id = :cart_id;
+        #     """
+        # ), {"cart_id": cart_id})
+
         connection.execute(sqlalchemy.text(
             """
-            UPDATE potions_inventory
-            SET inventory = potions_inventory.inventory - cart_items.qty
+            INSERT INTO potion_ledger(potion_change, potion_id)
+            SELECT cart_items.quantity * -1, cart_items.potion_id
             FROM cart_items
-            WHERE potions_inventory.potion_id = cart_items.potion_id
-            AND cart_items.cart_id = :cart_id;
+            WHERE cart_items.cart_id = :cart_id
             """
-        ), {"cart_id": cart_id})
+        ),[{"cart_id": cart_id}])
         
         total_potions_bought = connection.execute(sqlalchemy.text(
             """
@@ -245,12 +254,18 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             """
         ), {"cart_id": cart_id}).scalar_one()
 
+        # connection.execute(sqlalchemy.text(
+        #     """
+        #     UPDATE global_inventory
+        #     SET gold = gold + :total_gold_price
+        #     """
+        # ), {"total_gold_price": total_price})
         connection.execute(sqlalchemy.text(
-            """
-            UPDATE global_inventory
-            SET gold = gold + :total_gold_price
-            """
-        ), {"total_gold_price": total_price})
+             """
+            INSERT INTO gold_ledger(gold_change)
+            VALUES (:total_gold)
+             """
+        ), [{"total_gold":total_price }])
         
       
     print(f"total_potions_bought: {total_potions_bought}, total_gold_paid: {total_price}")
