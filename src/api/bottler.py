@@ -114,12 +114,19 @@ def get_bottle_plan():
         
         potion_data = connection.execute(sqlalchemy.text(
             """
-            SELECT potions_inventory.potion_id, potions_inventory.sku, SUM(potion_ledger.potion_change), potions_inventory.potion_type, potions_inventory.inventory
+            SELECT potions_inventory.potion_id, potions_inventory.sku, SUM(potion_ledger.potion_change), potions_inventory.potion_type
             FROM potions_inventory
             JOIN potion_ledger ON potions_inventory.potion_id = potion_ledger.id
             GROUP BY potions_inventory.potion_id
             """
         )).fetchall()
+
+        total_inventory = connection.execute(sqlalchemy.text(
+            """
+            SELECT SUM(potion_change)
+            FROM potion_ledger
+            """
+        )).scalar_one()
 
     #fetchall() gives you a list of "Row" objects
     #all() gives you ORM model instances
@@ -147,7 +154,15 @@ def get_bottle_plan():
             print(f"potion.potion_type[2]: {potion.potion_type[2]}")
             print(f"potion.potion_type[3]: {potion.potion_type[3]}")
 
-            if (potion_quantities[potion.sku] + potion.inventory < 7 and
+            indv_inventory = connection.execute(sqlalchemy.text(
+                            """
+                            SELECT SUM(potion_change)
+                            FROM potion_ledger
+                            WHERE potion_ledger = :potion_id
+                            """
+                        ),[{"potion_id": potion.id}]).scalar_one()
+
+            if (potion_quantities[potion.sku] + indv_inventory < 7 and
                 potion.potion_type[0] <= cur_red_ml and
                 potion.potion_type[1] <= cur_green_ml and
                 potion.potion_type[2] <= cur_blue_ml and
