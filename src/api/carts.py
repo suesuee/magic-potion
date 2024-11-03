@@ -230,8 +230,8 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
 
         connection.execute(sqlalchemy.text(
             """
-            INSERT INTO potion_ledger(potion_change, potion_id)
-            SELECT cart_items.quantity * -1, cart_items.potion_id
+            INSERT INTO potion_ledger(potion_id, potion_change)
+            SELECT cart_items.potion_id, (cart_items.qty * -1)
             FROM cart_items
             WHERE cart_items.cart_id = :cart_id
             """
