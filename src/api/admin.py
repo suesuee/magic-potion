@@ -20,19 +20,19 @@ def reset():
 
         connection.execute(sqlalchemy.text(
             """
-            TURNCATE TABLE ml_ledger
+            TRUNCATE TABLE ml_ledger
             """
         ))    
 
         connection.execute(sqlalchemy.text(
             """
-            TURNCATE TABLE potion_ledger
+            TRUNCATE TABLE potion_ledger
             """
         ))
 
         connection.execute(sqlalchemy.text(
             """
-            TURNCATE TABLE gold_ledger
+            TRUNCATE TABLE gold_ledger
             """
         ))
         
@@ -45,13 +45,13 @@ def reset():
 
         connection.execute(sqlalchemy.text(
             """
-            TURNCATE TABLE cart_items
+            TRUNCATE TABLE cart_items
             """
         ))
 
         connection.execute(sqlalchemy.text(
             """
-            TURNCATE TABLE carts
+            TRUNCATE TABLE carts
             """
         ))
 

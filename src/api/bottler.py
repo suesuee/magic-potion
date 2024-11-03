@@ -120,6 +120,10 @@ def get_bottle_plan():
             GROUP BY potions_inventory.potion_id
             """
         )).fetchall()
+
+    #fetchall() gives you a list of "Row" objects
+    #all() gives you ORM model instances
+    #Both ways will give me the access to columns
     
     potion_list = [potion for potion in potion_data]
     # total_potion_made = 0
