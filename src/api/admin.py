@@ -33,11 +33,11 @@ def reset():
         """))
 
         connection.execute(sqlalchemy.text("""
-            DELETE FROM cart_items
+            TURNCATE TABLE cart_items
         """))
 
         connection.execute(sqlalchemy.text("""
-            DELETE FROM carts
+            TURNCATE TABLE carts
         """))
 
     return {"message": "Shop has been reset to 0 for inventory and 100 for gold."}
