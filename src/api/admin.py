@@ -35,9 +35,9 @@ def reset():
         connection.execute(sqlalchemy.text(
             """
             INSERT INTO potion_ledger(potion_id, potion_change)
-            SELECT potion_inventory.potion_id, 0
-            FROM potion_inventory
-            GROUP BY potion_inventory.id
+            SELECT potions_inventory.potion_id, 0
+            FROM potions_inventory
+            GROUP BY potions_inventory.potion_id
             """
         ))
 

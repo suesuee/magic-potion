@@ -22,7 +22,7 @@ def get_inventory():
             FROM ml_ledger
             """
         )
-    ).scalar_one()
+    ).scalar_one() or 0
 
         num_green_ml = connection.execute(sqlalchemy.text(
             """
@@ -30,7 +30,7 @@ def get_inventory():
             FROM ml_ledger
             """
         )
-    ).scalar_one()
+    ).scalar_one() or 0
         
         num_blue_ml = connection.execute(sqlalchemy.text(
             """
@@ -38,7 +38,7 @@ def get_inventory():
             FROM ml_ledger
             """
         )
-    ).scalar_one()
+    ).scalar_one() or 0
         
         num_dark_ml = connection.execute(sqlalchemy.text(
             """
@@ -46,7 +46,7 @@ def get_inventory():
             FROM ml_ledger
             """
         )
-    ).scalar_one()
+    ).scalar_one() or 0
         
         gold = connection.execute(sqlalchemy.text(
             """
