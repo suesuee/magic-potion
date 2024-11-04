@@ -23,6 +23,14 @@ def reset():
         connection.execute(sqlalchemy.text("TRUNCATE TABLE potion_ledger"))
         connection.execute(sqlalchemy.text("TRUNCATE TABLE gold_ledger"))
         
+        # Initialize ml in the ledger
+        connection.execute(sqlalchemy.text(
+            """
+            INSERT INTO ml_ledger(red_ml_change, green_ml_change, blue_ml_change, dark_ml_change)
+            VALUES (0,0,0,0)
+            """
+        ))
+
         # Initialize gold to 100 in the ledger
         connection.execute(sqlalchemy.text(
             """
