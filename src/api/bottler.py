@@ -114,12 +114,12 @@ def get_bottle_plan():
         
         potion_data = connection.execute(sqlalchemy.text(
             """
-            SELECT potions_inventory.potion_id, potions_inventory.sku, SUM(potion_ledger.potion_change), potions_inventory.potion_type
+            SELECT potions_inventory.potion_id AS id, potions_inventory.sku, SUM(potion_ledger.potion_change), potions_inventory.potion_type
             FROM potions_inventory
             JOIN potion_ledger ON potions_inventory.potion_id = potion_ledger.potion_id
             GROUP BY potions_inventory.potion_id
             """
-        )).fetchall()
+        )).all()
 
         total_inventory = connection.execute(sqlalchemy.text(
             """
@@ -132,54 +132,54 @@ def get_bottle_plan():
     #all() gives you ORM model instances
     #Both ways will give me the access to columns
     
-    potion_list = [potion for potion in potion_data]
-    print(f"get bottler plan's potion_list: {potion_list}")
-    # total_potion_made = 0
-    my_bottle_plan = []
-    potion_quantities = {}
-
-    for potion in potion_list:
-        potion_quantities[potion.sku] = 0
-        
-    num_potions = len(potion_list)
-    
-    print(f"Number of potions: {num_potions}")
-    
-    while num_potions > 0:
-        num_potions -= 1
+        potion_list = [potion for potion in potion_data]
+        print(f"get bottler plan's potion_list: {potion_list}")
+        # total_potion_made = 0
+        my_bottle_plan = []
+        potion_quantities = {}
 
         for potion in potion_list:
-            print(f"Potions in the loop: {potion}")
-            print(f"potion.potion_type[0]: {potion.potion_type[0]}")
-            print(f"potion.potion_type[1]: {potion.potion_type[1]}")
-            print(f"potion.potion_type[2]: {potion.potion_type[2]}")
-            print(f"potion.potion_type[3]: {potion.potion_type[3]}")
+            potion_quantities[potion.sku] = 0
+            
+        num_potions = len(potion_list)
+        
+        print(f"Number of potions: {num_potions}")
+        
+        while num_potions > 0:
+            num_potions -= 1
 
-            indv_inventory = connection.execute(sqlalchemy.text(
-                            """
-                            SELECT SUM(potion_change)
-                            FROM potion_ledger
-                            WHERE potion_ledger = :potion_id
-                            """
-                        ),[{"potion_id": potion.id}]).scalar_one()
+            for potion in potion_list:
+                print(f"Potions in the loop: {potion}")
+                print(f"potion.potion_type[0]: {potion.potion_type[0]}")
+                print(f"potion.potion_type[1]: {potion.potion_type[1]}")
+                print(f"potion.potion_type[2]: {potion.potion_type[2]}")
+                print(f"potion.potion_type[3]: {potion.potion_type[3]}")
 
-            if (potion_quantities[potion.sku] + indv_inventory < 7 and
-                potion.potion_type[0] <= cur_red_ml and
-                potion.potion_type[1] <= cur_green_ml and
-                potion.potion_type[2] <= cur_blue_ml and
-                potion.potion_type[3] <= cur_dark_ml):
+                indv_inventory = connection.execute(sqlalchemy.text(
+                                """
+                                SELECT SUM(potion_change)
+                                FROM potion_ledger
+                                WHERE potion_ledger.potion_id = :potion_id
+                                """
+                            ),[{"potion_id": potion.id}]).scalar_one()
 
-                cur_red_ml -= potion.potion_type[0]
-                cur_green_ml -= potion.potion_type[1]
-                cur_blue_ml -= potion.potion_type[2]
-                cur_dark_ml -= potion.potion_type[3]
+                if (potion_quantities[potion.sku] + indv_inventory < 7 and
+                    potion.potion_type[0] <= cur_red_ml and
+                    potion.potion_type[1] <= cur_green_ml and
+                    potion.potion_type[2] <= cur_blue_ml and
+                    potion.potion_type[3] <= cur_dark_ml):
 
-                potion_quantities[potion.sku] += 1
-                
-                print(f"Number of potions inside the loop: {num_potions}")
-                print(f"Below are the current mls:")
-                print(cur_red_ml, cur_green_ml, cur_blue_ml, cur_dark_ml)
-                print(f"These are potion quantities: {potion_quantities}")
+                    cur_red_ml -= potion.potion_type[0]
+                    cur_green_ml -= potion.potion_type[1]
+                    cur_blue_ml -= potion.potion_type[2]
+                    cur_dark_ml -= potion.potion_type[3]
+
+                    potion_quantities[potion.sku] += 1
+                    
+                    print(f"Number of potions inside the loop: {num_potions}")
+                    print(f"Below are the current mls:")
+                    print(cur_red_ml, cur_green_ml, cur_blue_ml, cur_dark_ml)
+                    print(f"These are potion quantities: {potion_quantities}")
     
     for potion in potion_list:
         if potion_quantities[potion.sku] > 0:
