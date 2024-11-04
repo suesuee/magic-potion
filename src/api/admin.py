@@ -31,6 +31,16 @@ def reset():
             """
         ))
 
+        # Initialize potion in the ledger
+        connection.execute(sqlalchemy.text(
+            """
+            INSERT INTO potion_ledger(potion_id, potion_change)
+            SELECT potion_inventory.potion_id, 0
+            FROM potion_inventory
+            GROUP BY potion_inventory.id
+            """
+        ))
+
         # Initialize gold to 100 in the ledger
         connection.execute(sqlalchemy.text(
             """
