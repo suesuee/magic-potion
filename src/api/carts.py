@@ -56,75 +56,75 @@ def search_orders(
     time is 5 total line items.
     """
 
-    # limit = 5
-    # page = int(search_page) if search_page else 1
-    # offset = (page - 1) * limit
+    limit = 5
+    page = int(search_page) if search_page else 1
+    offset = (page - 1) * limit
 
-    # if sort_col is search_sort_options.customer_name:
-    #     order_by = db.customers.c.customer_name
-    # elif sort_col is search_sort_options.item_sku:
-    #     order_by = db.potions_inventory.c.sku
-    # elif sort_col is search_sort_options.line_item_total:
-    #     order_by = db.cart_items.c.qty * db.cart_items.c.price
-    # elif sort_col is search_sort_options.timestamp:
-    #     order_by = db.cart_items.c.created_at
-    # else: 
-    #     assert False, "Invalid sort option"
+    if sort_col is search_sort_options.customer_name:
+        order_by = db.customers.c.customer_name
+    elif sort_col is search_sort_options.item_sku:
+        order_by = db.potions_inventory.c.sku
+    elif sort_col is search_sort_options.line_item_total:
+        order_by = db.cart_items.c.qty * db.cart_items.c.price
+    elif sort_col is search_sort_options.timestamp:
+        order_by = db.cart_items.c.added_at
+    else: 
+        assert False, "Invalid sort option"
     
-    # # Do descending order if specified
-    # if sort_order == search_sort_order.desc:
-    #     order_by = desc(order_by)
+    # Do descending order if specified
+    if sort_order == search_sort_order.desc:
+        order_by = sqlalchemy.desc(order_by)
     
-    # stmt = (
-    #     sqlalchemy.select(
-    #         db.carts.c.id.label("line_item_id"),
-    #         db.customers.c.customer_name,
-    #         db.customers.c.qty.label("quantity").
-    #         db.potions_inventory.c.sku,
-    #         (db.cart_items.c.qty * db.potions_inventory.c.price).label("line_item_total"),
-    #         db.cart_items.c.added_at.label("timestamp")
-    #     )
-    #     .select_from(
-    #         db.cart_items
-    #         .join(db.carts, db.cart_items.c.cart_id == db.carts.c.id)
-    #         .join(db.customers, db.carts.c.customer_id == db.customers.c.id)
-    #         .join(db.potions_inventory, db.cart_items.c.potion_id == db.potions_inventory.c.potion_id)
-    #     )
-    #     .order_by(order_by, db.carts.c.id)
-    #     .limit(limit)
-    #     .offset(offset)
-    # )
+    stmt = (
+        sqlalchemy.select(
+            db.carts.c.id.label("line_item_id"),
+            db.customers.c.customer_name,
+            db.cart_items.c.qty.label("quantity"),
+            db.potions_inventory.c.sku,
+            (db.cart_items.c.qty * db.potions_inventory.c.price).label("line_item_total"),
+            db.cart_items.c.added_at.label("timestamp")
+        )
+        .select_from(
+            db.cart_items
+            .join(db.carts, db.cart_items.c.cart_id == db.carts.c.id)
+            .join(db.customers, db.carts.c.customer_id == db.customers.c.id)
+            .join(db.potions_inventory, db.cart_items.c.potion_id == db.potions_inventory.c.potion_id)
+        )
+        .order_by(order_by, db.carts.c.id)
+        .limit(limit)
+        .offset(offset)
+    )
 
-    # # Apply filters only if parameters are provided
-    # if customer_name:
-    #     stmt = stmt.where(db.customers.c.customer_name.ilike(f"%{customer_name}%"))
-    # if potion_sku:
-    #     stmt = stmt.where(db.potions_inventory.c.sku.ilike(f"%{potion_sku}%"))
+    # Apply filters only if parameters are provided
+    if customer_name:
+        stmt = stmt.where(db.customers.c.customer_name.ilike(f"%{customer_name}%"))
+    if potion_sku:
+        stmt = stmt.where(db.potions_inventory.c.sku.ilike(f"%{potion_sku}%"))
 
-    # with db.engine.connect() as conn:
-    #     result = conn.execute(stmt)
-    #     json_result = []
-    #     for row in result:
-    #         item_sku_display = f"{row.quantity} {row.sku}"
-    #         timestamp_display = row.timestamp.isoformat()
-    #         json_result.append(
-    #             {
-    #                 "line_item_id": row.line_item_id,
-    #                 "item_sku": item_sku_display,
-    #                 "customer_name": row.customer_name,
-    #                 "line_item_total": row.line_item_total,
-    #                 "timestamp": timestamp_display
-    #             }
-    #         )
-    # # Pagination tokens for previous and next pages
-    # previous = f"?search_page={page-1}" if page > 1 else ""
-    # next = f"?search_page={page+1}" if len(json_result) == limit else ""
+    with db.engine.connect() as conn:
+        result = conn.execute(stmt)
+        json_result = []
+        for row in result:
+            item_sku_display = f"{row.quantity} {row.sku}"
+            timestamp_display = row.timestamp.isoformat()
+            json_result.append(
+                {
+                    "line_item_id": row.line_item_id,
+                    "item_sku": item_sku_display,
+                    "customer_name": row.customer_name,
+                    "line_item_total": row.line_item_total,
+                    "timestamp": timestamp_display
+                }
+            )
+    # Pagination tokens for previous and next pages
+    previous = f"?search_page={page-1}" if page > 1 else ""
+    next = f"?search_page={page+1}" if len(json_result) == limit else ""
 
-    # return {
-    #     "previous": previous,
-    #     "next": next,
-    #     "results": json_result
-    # }
+    return {
+        "previous": previous,
+        "next": next,
+        "results": json_result
+    }
 
     # return {
     #     "previous": "",
