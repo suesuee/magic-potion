@@ -57,7 +57,14 @@ def search_orders(
     """
 
     limit = 5
-    page = int(search_page) if search_page else 1
+    #page = int(search_page) if search_page else 1
+    if search_page.startswith("?search_page="):
+        try:
+            page = int(search_page.split("=")[-1])
+        except ValueError:
+            page = 1
+    else:
+        page = 1
     offset = (page - 1) * limit
 
     if sort_col is search_sort_options.customer_name:
