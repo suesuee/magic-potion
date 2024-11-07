@@ -76,16 +76,6 @@ def get_bottle_plan():
     Go from barrel to bottle.
     """
 
-    # with db.engine.begin() as connection:
-    #     result = connection.execute(sqlalchemy.text(
-    #         """
-    #         SELECT num_red_ml, num_green_ml, num_blue_ml, num_dark_ml 
-    #         FROM global_inventory
-    #         """
-    #         )
-    #     )
-    #     potion_data = connection.execute(sqlalchemy.text("SELECT * from potions_inventory"))
-
     with db.engine.begin() as connection:
         cur_red_ml = connection.execute(sqlalchemy.text(
             """
@@ -134,6 +124,7 @@ def get_bottle_plan():
     
         potion_list = [potion for potion in potion_data]
         print(f"get bottler plan's potion_list: {potion_list}")
+        # get bottler plan's potion_list: [(7, 'CYAN_POTION_0', Decimal('0'), [0, 50, 50, 0]), (1, 'RED_POTION_0', Decimal('3'), [100, 0, 0, 0]), (5, 'YELLOW_POTION_0', Decimal('4'), [50, 50, 0, 0]), (2, 'GREEN_POTION_0', Decimal('3'), [0, 100, 0, 0]), (4, 'DARK_POTION_0', Decimal('0'), [0, 0, 0, 100]), (6, 'PURPLE_POTION_0', Decimal('0'), [50, 0, 50, 0]), (3, 'BLUE_POTION_0', Decimal('0'), [0, 0, 100, 0])]
         # total_potion_made = 0
         my_bottle_plan = []
         potion_quantities = {}
@@ -149,11 +140,11 @@ def get_bottle_plan():
             num_potions -= 1
 
             for potion in potion_list:
-                print(f"Potions in the loop: {potion}")
-                print(f"potion.potion_type[0]: {potion.potion_type[0]}")
-                print(f"potion.potion_type[1]: {potion.potion_type[1]}")
-                print(f"potion.potion_type[2]: {potion.potion_type[2]}")
-                print(f"potion.potion_type[3]: {potion.potion_type[3]}")
+                # print(f"Potions in the loop: {potion}") # potion = (7, 'CYAN_POTION_0', Decimal('0'), [0, 50, 50, 0])
+                # print(f"potion.potion_type[0]: {potion.potion_type[0]}") # potion.potion_type[0]: 0
+                # print(f"potion.potion_type[1]: {potion.potion_type[1]}") # potion.potion_type[1]: 50
+                # print(f"potion.potion_type[2]: {potion.potion_type[2]}") # potion.potion_type[2]: 50
+                # print(f"potion.potion_type[3]: {potion.potion_type[3]}") # potion.potion_type[3]: 0
 
                 indv_inventory = connection.execute(sqlalchemy.text(
                                 """
