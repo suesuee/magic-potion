@@ -70,7 +70,7 @@ def search_orders(
     if sort_col is search_sort_options.customer_name:
         order_by = db.customers.c.customer_name
     elif sort_col is search_sort_options.item_sku:
-        order_by = db.potions_inventory.c.sku
+        order_by = db.potions_inventory.c.potion_name
     elif sort_col is search_sort_options.line_item_total:
         order_by = db.cart_items.c.qty * db.potions_inventory.c.price
     elif sort_col is search_sort_options.timestamp:
@@ -84,10 +84,11 @@ def search_orders(
     
     stmt = (
         sqlalchemy.select(
-            db.carts.c.id.label("line_item_id"),
+            db.cart_items.c.id.label("line_item_id"),
             db.customers.c.customer_name,
             db.cart_items.c.qty.label("quantity"),
             db.potions_inventory.c.sku,
+            db.potions_inventory.c.potion_name,
             (db.cart_items.c.qty * db.potions_inventory.c.price).label("line_item_total"),
             db.cart_items.c.added_at.label("timestamp")
         )
@@ -106,13 +107,13 @@ def search_orders(
     if customer_name:
         stmt = stmt.where(db.customers.c.customer_name.ilike(f"%{customer_name}%"))
     if potion_sku:
-        stmt = stmt.where(db.potions_inventory.c.sku.ilike(f"%{potion_sku}%"))
+        stmt = stmt.where(db.potions_inventory.c.potion_name.ilike(f"%{potion_sku}%"))
 
     with db.engine.connect() as conn:
         result = conn.execute(stmt)
         json_result = []
         for row in result:
-            item_sku_display = f"{row.quantity} {row.sku}"
+            item_sku_display = f"{row.quantity} {row.potion_name}S"
             timestamp_display = row.timestamp.isoformat()
             json_result.append(
                 {
