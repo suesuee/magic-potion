@@ -20,11 +20,17 @@ def get_catalog():
             FROM potions_inventory
             JOIN potion_ledger ON potion_ledger.potion_id = potions_inventory.potion_id
             GROUP BY potions_inventory.potion_id
+            HAVING SUM(potion_ledger.potion_change) > 0
+            ORDER BY inventory DESC
             """
-        ))
+        )).fetchall()
 
-    for row in result:
-        if (row.inventory > 0):
+    count = 0
+    if len(result) > 0:
+        for row in result:
+            # print(row) - gonna print all the available potions (7)
+            if count == 6:
+                break
             my_catalog.append(
                 {
                     "sku": row.sku,
@@ -32,8 +38,8 @@ def get_catalog():
                     "quantity": row.inventory,
                     "price": row.price,
                     "potion_type": row.potion_type
-                }
-        )
+                })
+            count += 1
 
     print(f"my catalog: {my_catalog}")
     # Return an empty catalog if no potions are available
