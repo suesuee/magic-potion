@@ -154,7 +154,7 @@ def get_bottle_plan():
                                 """
                             ),[{"potion_id": potion.id}]).scalar_one()
 
-                if (potion_quantities[potion.sku] + indv_inventory < 7 and
+                if (potion_quantities[potion.sku] + indv_inventory < 5 and
                     potion.potion_type[0] <= cur_red_ml and
                     potion.potion_type[1] <= cur_green_ml and
                     potion.potion_type[2] <= cur_blue_ml and
