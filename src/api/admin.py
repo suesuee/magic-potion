@@ -22,6 +22,7 @@ def reset():
         connection.execute(sqlalchemy.text("TRUNCATE TABLE ml_ledger"))
         connection.execute(sqlalchemy.text("TRUNCATE TABLE potion_ledger"))
         connection.execute(sqlalchemy.text("TRUNCATE TABLE gold_ledger"))
+        connection.execute(sqlalchemy.text("TRUNCATE TABLE capacities"))
         
         # Initialize ml in the ledger
         connection.execute(sqlalchemy.text(
@@ -48,6 +49,31 @@ def reset():
             VALUES (100)
             """
         ))
+
+        # Initialize capacities in the ledger
+        connection.execute(sqlalchemy.text(
+            """
+            INSERT INTO capacities(potion_c, ml_c, buy_potion_c, buy_ml_c)
+            VALUES (50, 10000, TRUE, TRUE)
+            """
+        ))
+
+        # Initialize ml capacities in the ledger
+        connection.execute(sqlalchemy.text(
+            """
+            INSERT INTO ml_c_ledger(ml_c_change)
+            VALUES (10000)
+            """
+        ))
+
+        # Initialize potion capacities in the ledger
+        connection.execute(sqlalchemy.text(
+            """
+            INSERT INTO potion_c_ledger(potion_c_change)
+            VALUES (50)
+            """
+        ))
+        
 
         # Clear carts and cart_items
         connection.execute(sqlalchemy.text("TRUNCATE TABLE carts CASCADE"))

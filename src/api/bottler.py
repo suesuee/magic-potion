@@ -4,6 +4,7 @@ from enum import Enum
 from pydantic import BaseModel
 from src.api import auth
 from src import database as db
+import random
 
 router = APIRouter(
     prefix="/bottler",
@@ -18,56 +19,42 @@ class PotionInventory(BaseModel):
 @router.post("/deliver/{order_id}")
 def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int):
     """ Convert potions in barrels to bottles in 100ml each """
+    print("CALLED post_deliver_bottles().")
 
-    if not potions_delivered:
-        return "No potions delivered."
-    
     with db.engine.begin() as connection:
-        new_potions = sum(potion.quantity for potion in potions_delivered)
-        red_ml = sum(potion.quantity * potion.potion_type[0] for potion in potions_delivered)
-        green_ml = sum(potion.quantity * potion.potion_type[1] for potion in potions_delivered)
-        blue_ml = sum(potion.quantity * potion.potion_type[2] for potion in potions_delivered)
-        dark_ml = sum(potion.quantity * potion.potion_type[3] for potion in potions_delivered)
+        total_new_potions = sum(potion.quantity for potion in potions_delivered)
+        red_ml_used = sum(potion.quantity * potion.potion_type[0] for potion in potions_delivered)
+        green_ml_used = sum(potion.quantity * potion.potion_type[1] for potion in potions_delivered)
+        blue_ml_used = sum(potion.quantity * potion.potion_type[2] for potion in potions_delivered)
+        dark_ml_used = sum(potion.quantity * potion.potion_type[3] for potion in potions_delivered)
 
-        # for potion_delivered in potions_delivered:
-        #     connection.execute(sqlalchemy.text(
-        #         """
-        #         UPDATE potions_inventory
-        #         SET inventory = inventory + :potions_delivered
-        #         WHERE potion_type = :potion_type
-        #         """),
-        #         {"potions_delivered": potion_delivered.quantity, "potion_type": potion_delivered.potion_type}
-        #     )
         for potion_delivered in potions_delivered:
             connection.execute(sqlalchemy.text(
                 """
                 INSERT INTO potion_ledger(potion_change, potion_id)
                 SELECT :change_of_potion, potion_id
                 FROM potions_inventory
-                WHERE potions_inventory.potion_type = :potion_type
+                WHERE num_red_ml = :num_red_ml
+                  AND num_green_ml = :num_green_ml
+                  AND num_blue_ml = :num_blue_ml
+                  AND num_dark_ml = :num_dark_ml
                 """
-            ),[{"change_of_potion": potion_delivered.quantity, "potion_type": potion_delivered.potion_type}])
-        
-        # connection.execute(sqlalchemy.text(
-        #     """
-        #     UPDATE global_inventory
-        #     SET num_red_ml = num_red_ml - :red_ml,
-        #     num_green_ml = num_green_ml - :green_ml,
-        #     num_blue_ml = num_blue_ml - :blue_ml,
-        #     num_dark_ml = num_dark_ml - :dark_ml
-        #     """
-        # ), 
-        # {"red_ml": red_ml, "green_ml": green_ml, "blue_ml": blue_ml, "dark_ml": dark_ml})    
+            ),{"change_of_potion": potion_delivered.quantity, 
+                "num_red_ml": potion_delivered.potion_type[0],
+                "num_green_ml": potion_delivered.potion_type[1],
+                "num_blue_ml": potion_delivered.potion_type[2],
+                "num_dark_ml": potion_delivered.potion_type[3]
+            })   
 
         connection.execute(sqlalchemy.text(
             """
             INSERT INTO ml_ledger(red_ml_change, green_ml_change, blue_ml_change, dark_ml_change)
             VALUES(:red_ml, :green_ml, :blue_ml, :dark_ml )
             """
-        ),[{"red_ml": -red_ml, "green_ml": -green_ml, "blue_ml": -blue_ml, "dark_ml": -dark_ml}])
+        ),[{"red_ml": -red_ml_used, "green_ml": -green_ml_used, "blue_ml": -blue_ml_used, "dark_ml": -dark_ml_used}])
 
     print(f"Potions delivered: {potions_delivered}, Order ID: {order_id}")
-    print(f"New potions delivered quantity: {new_potions}")
+    print(f"New potions delivered quantity: {total_new_potions}")
     return "OK"
 
 @router.post("/plan")
@@ -75,109 +62,152 @@ def get_bottle_plan():
     """
     Go from barrel to bottle.
     """
+    print("CALLED get_bottle_plan().")
 
     with db.engine.begin() as connection:
-        cur_red_ml = connection.execute(sqlalchemy.text(
+        ml_resources = connection.execute(sqlalchemy.text(
             """
-            SELECT SUM(red_ml_change)
+            SELECT 
+                SUM(red_ml_change) AS red_ml,
+                SUM(green_ml_change) AS green_ml,
+                SUM(blue_ml_change) AS blue_ml,
+                SUM(dark_ml_change) AS dark_ml
             FROM ml_ledger
             """
-        )).scalar_one()
-        cur_green_ml = connection.execute(sqlalchemy.text(
+        )).fetchone()
+
+    red_ml = ml_resources.red_ml or 0
+    green_ml = ml_resources.green_ml or 0
+    blue_ml = ml_resources.blue_ml or 0
+    dark_ml = ml_resources.dark_ml or 0
+
+    print()
+    print(f"red_ml from database: {red_ml}")
+    print(f"green_ml from database: {green_ml}")
+    print(f"blue_ml from database: {blue_ml}")
+    print(f"dark_ml from database: {dark_ml}")
+
+    with db.engine.begin() as connection:
+        capacity_data = connection.execute(sqlalchemy.text(
             """
-            SELECT SUM(green_ml_change)
-            FROM ml_ledger
+            SELECT potion_c FROM capacities LIMIT 1
             """
-        )).scalar_one()
-        cur_blue_ml = connection.execute(sqlalchemy.text(
-            """
-            SELECT SUM(blue_ml_change)
-            FROM ml_ledger
-            """
-        )).scalar_one()
-        cur_dark_ml = connection.execute(sqlalchemy.text(
-            """
-            SELECT SUM(dark_ml_change)
-            FROM ml_ledger
-            """
-        )).scalar_one()
-        
+        )).fetchone()
+        potion_capacity = capacity_data.potion_c
+        production_limit = int(potion_capacity * 0.8)
+        max_per_potion_type = int(potion_capacity * 0.25)  # 25% limit per potion type
+
+        print()
+        print(f"potion capacity: {potion_capacity}")
+        print(f"production_limit: {production_limit}")
+        print(f"max per potion type: {max_per_potion_type}")
+    
+    with db.engine.begin() as connection:
         potion_data = connection.execute(sqlalchemy.text(
             """
-            SELECT potions_inventory.potion_id AS id, potions_inventory.sku, SUM(potion_ledger.potion_change), potions_inventory.potion_type
+            SELECT potions_inventory.potion_id AS id, potions_inventory.sku, 
+                SUM(potion_ledger.potion_change) AS inventory, potions_inventory.potion_type, 
+                potions_inventory.num_red_ml, potions_inventory.num_green_ml, 
+                potions_inventory.num_blue_ml, potions_inventory.num_dark_ml, 
+                potions_inventory.price
             FROM potions_inventory
-            JOIN potion_ledger ON potions_inventory.potion_id = potion_ledger.potion_id
+            LEFT JOIN potion_ledger ON potions_inventory.potion_id = potion_ledger.potion_id
             GROUP BY potions_inventory.potion_id
             """
-        )).all()
+        )).fetchall()
 
         total_inventory = connection.execute(sqlalchemy.text(
             """
-            SELECT SUM(potion_change)
+            SELECT COALESCE(SUM(potion_change), 0)
             FROM potion_ledger
             """
-        )).scalar_one()
+        )).scalar() or 0
 
+    print()
+    print(f"total_inventory from database: {total_inventory}")
+
+    # Sort potions:
+    # 1. Special case [0, 0, 0, 100] is prioritized first.
+    # 2. Mixed potions (more non-zero MLs) are prioritized over single ML potions.
+    # 3. Higher price is prioritized.
+    # 4. Randomization for tie-breaking.
+    sorted_potions = sorted(
+        potion_data,
+        key=lambda p: (
+            0 if [p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml] == [0, 0, 0, 100] else 1,  # Special case
+            -sum(1 for ml in [p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml] if ml > 0),  # Count of non-zero MLs
+            p.price,  # Price in descending order
+            random.random()  # Random tie-breaking
+        )
+    )
+    print()
+    print(f"sorted_potions: {sorted_potions}")
+    
+    total_potion_made = 0
+    my_bottle_plan = []
+    potion_quantities = {potion.sku: 0 for potion in sorted_potions}
+
+    for potion in sorted_potions:
+        max_bottles_possible = min(
+            red_ml // potion.num_red_ml if potion.num_red_ml > 0 else float('inf'),
+            green_ml // potion.num_green_ml if potion.num_green_ml > 0 else float('inf'),
+            blue_ml // potion.num_blue_ml if potion.num_blue_ml > 0 else float('inf'),
+            dark_ml // potion.num_dark_ml if potion.num_dark_ml > 0 else float ('inf')
+        )
+        print()
+        print(f"potion color: {potion.sku}")
+        print(f"red_ml // potion.num_red_ml: {red_ml // potion.num_red_ml if potion.num_red_ml > 0 else 0}")
+        print(f"green_ml // potion.num_green_ml: {green_ml // potion.num_green_ml if potion.num_green_ml > 0 else 0}")
+        print(f"blue_ml // potion.num_blue_ml: {blue_ml // potion.num_blue_ml if potion.num_blue_ml > 0 else 0}")
+        print(f"dark_ml // potion.num_dark_ml: {dark_ml // potion.num_dark_ml if potion.num_dark_ml > 0 else 0}")
+        print(f"max_bottles_possible: {max_bottles_possible}")
+
+        # Limit production to the remaining production limit
+        target_quantity = min(max_bottles_possible, potion_capacity - total_potion_made)
+        max_allowed_for_potion = max_per_potion_type - potion_quantities[potion.sku]
+        print(f"potion_quantities[potion.sku] before if: {potion_quantities[potion.sku]}")
+        print(f"production limit target_quantity: {target_quantity}")
+        print(f"max_allowed_for_potion: {max_allowed_for_potion}")
+
+        # Ensure target_quantity does not exceed the 25% limit for this potion type
+        target_quantity = min(target_quantity, max_allowed_for_potion)
+        print(f"25% target_quantity: {target_quantity}")
+
+        if total_potion_made + target_quantity > production_limit:
+            # Adjust target_quantity to fit within the remaining production limit
+            target_quantity = production_limit - total_potion_made
+        
+        print(f"TOTAL POTION MADE: {total_potion_made}")
+        print(f"final target_quantity: {target_quantity}")
+        
+        if target_quantity > 0:
+            red_ml -= potion.num_red_ml * target_quantity
+            green_ml -= potion.num_green_ml * target_quantity
+            blue_ml -= potion.num_blue_ml * target_quantity
+            dark_ml -= potion.num_dark_ml * target_quantity
+
+            potion_quantities[potion.sku] += target_quantity # adding target_quantity directly no looping required
+            print(f"potion_quantities[potion.sku] after if: {potion_quantities[potion.sku]}")
+            total_potion_made += target_quantity
+            production_limit -= target_quantity
+
+            my_bottle_plan.append({
+                "potion_type": [
+                    potion.num_red_ml,
+                    potion.num_green_ml,
+                    potion.num_blue_ml,
+                    potion.num_dark_ml
+                ],
+                "quantity": target_quantity
+            })
+            print()
+            print(f"my_bottle_plan: {my_bottle_plan}")
+
+    print()
+    print(f"my_final_bottle_plan: {my_bottle_plan}")
     #fetchall() gives you a list of "Row" objects
     #all() gives you ORM model instances
     #Both ways will give me the access to columns
-    
-        potion_list = [potion for potion in potion_data]
-        print(f"get bottler plan's potion_list: {potion_list}")
-        # get bottler plan's potion_list: [(7, 'CYAN_POTION_0', Decimal('0'), [0, 50, 50, 0]), (1, 'RED_POTION_0', Decimal('3'), [100, 0, 0, 0]), (5, 'YELLOW_POTION_0', Decimal('4'), [50, 50, 0, 0]), (2, 'GREEN_POTION_0', Decimal('3'), [0, 100, 0, 0]), (4, 'DARK_POTION_0', Decimal('0'), [0, 0, 0, 100]), (6, 'PURPLE_POTION_0', Decimal('0'), [50, 0, 50, 0]), (3, 'BLUE_POTION_0', Decimal('0'), [0, 0, 100, 0])]
-        # total_potion_made = 0
-        my_bottle_plan = []
-        potion_quantities = {}
-
-        for potion in potion_list:
-            potion_quantities[potion.sku] = 0
-            
-        num_potions = len(potion_list)
-        
-        print(f"Number of potions: {num_potions}")
-        
-        while num_potions > 0:
-            num_potions -= 1
-
-            for potion in potion_list:
-                # print(f"Potions in the loop: {potion}") # potion = (7, 'CYAN_POTION_0', Decimal('0'), [0, 50, 50, 0])
-                # print(f"potion.potion_type[0]: {potion.potion_type[0]}") # potion.potion_type[0]: 0
-                # print(f"potion.potion_type[1]: {potion.potion_type[1]}") # potion.potion_type[1]: 50
-                # print(f"potion.potion_type[2]: {potion.potion_type[2]}") # potion.potion_type[2]: 50
-                # print(f"potion.potion_type[3]: {potion.potion_type[3]}") # potion.potion_type[3]: 0
-
-                indv_inventory = connection.execute(sqlalchemy.text(
-                                """
-                                SELECT SUM(potion_change)
-                                FROM potion_ledger
-                                WHERE potion_ledger.potion_id = :potion_id
-                                """
-                            ),[{"potion_id": potion.id}]).scalar_one()
-
-                if (potion_quantities[potion.sku] + indv_inventory < 3 and
-                    potion.potion_type[0] <= cur_red_ml and
-                    potion.potion_type[1] <= cur_green_ml and
-                    potion.potion_type[2] <= cur_blue_ml and
-                    potion.potion_type[3] <= cur_dark_ml):
-
-                    cur_red_ml -= potion.potion_type[0]
-                    cur_green_ml -= potion.potion_type[1]
-                    cur_blue_ml -= potion.potion_type[2]
-                    cur_dark_ml -= potion.potion_type[3]
-
-                    potion_quantities[potion.sku] += 1
-                    
-                    print(f"Number of potions inside the loop: {num_potions}")
-                    print(f"Below are the current mls:")
-                    print(cur_red_ml, cur_green_ml, cur_blue_ml, cur_dark_ml)
-                    print(f"These are potion quantities: {potion_quantities}")
-    
-    for potion in potion_list:
-        if potion_quantities[potion.sku] > 0:
-            my_bottle_plan.append({
-                "potion_type": potion.potion_type,
-                "quantity": potion_quantities[potion.sku]
-            })
     
     return my_bottle_plan
 

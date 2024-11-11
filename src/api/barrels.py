@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from src.api import auth
 from src import database as db
+import random
 
 router = APIRouter(
     prefix="/barrels",
@@ -22,50 +23,34 @@ class Barrel(BaseModel):
 @router.post("/deliver/{order_id}")
 def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     """ Updates the inventory based on delivered barrels. """
-    
+    print("CALLED post_deliver_barrels()")
     print(f"(first) barrels delivered: {barrels_delivered} order_id: {order_id}")
-    
-    # Define potion type mapping
-    potion_type_map = {
-        (1, 0, 0, 0): "red",
-        (0, 1, 0, 0): "green",
-        (0, 0, 1, 0): "blue",
-        (0, 0, 0, 1): "dark",
-    }
 
-    gold_paid = 0
     total_cost = 0
-    potion_ml = {"red": 0, "green": 0, "blue": 0, "dark": 0}
+    num_red_ml_delivered = num_green_ml_delivered = num_blue_ml_delivered = num_dark_ml_delivered = 0
 
     # Update the ml (inventory) after the barrels are delivered.
     for barrel in barrels_delivered:
-        total_cost += barrel.price * barrel.quantity
-        potion_type_key = tuple(barrel.potion_type)
-
-        if potion_type_key in potion_type_map:
-            potion_color = potion_type_map[potion_type_key]
-            potion_ml[potion_color] += barrel.ml_per_barrel * barrel.quantity
+        if barrel.potion_type == [1, 0, 0, 0]:
+            num_red_ml_delivered += barrel.ml_per_barrel * barrel.quantity
+            total_cost += barrel.price * barrel.quantity
+        elif barrel.potion_type == [0, 1, 0, 0]:
+             num_green_ml_delivered += barrel.ml_per_barrel * barrel.quantity
+             total_cost += barrel.price * barrel.quantity
+        elif barrel.potion_type == [0, 0, 1, 0]:
+             num_blue_ml_delivered += barrel.ml_per_barrel * barrel.quantity
+             total_cost += barrel.price * barrel.quantity
+        elif barrel.potion_type == [0, 0, 0, 1]:
+             num_dark_ml_delivered += barrel.ml_per_barrel * barrel.quantity
+             total_cost += barrel.price * barrel.quantity
+        print()
+        print(f"Red ml delivered: {num_red_ml_delivered}")
+        print(f"Green ml delivered: {num_green_ml_delivered}")
+        print(f"Blue ml delivered: {num_blue_ml_delivered}")
+        print(f"Dark ml delivered: {num_dark_ml_delivered}")
 
     print(f"total cost or total gold paid (final): {total_cost}")
     
-    # with db.engine.begin() as connection:
-    #     connection.execute(sqlalchemy.text(
-    #     """
-    #     UPDATE global_inventory
-    #     SET num_red_ml = num_red_ml + :red_ml,
-    #     num_green_ml = num_green_ml + :green_ml,
-    #     num_blue_ml = num_blue_ml + :blue_ml,
-    #     num_dark_ml = num_dark_ml + :dark_ml,
-    #     gold = gold - :gold_paid
-    #     """
-    # ), {
-    #     'red_ml' : potion_ml["red"],
-    #     'green_ml' : potion_ml["green"],
-    #     'blue_ml' : potion_ml["blue"],
-    #     'dark_ml' : potion_ml["dark"],
-    #     'gold_paid': gold_paid
-    # })
-
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text(
             """
@@ -81,7 +66,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
             VALUES (:red_ml, :green_ml, :blue_ml, :dark_ml)
             """
         ),
-        [{"red_ml": potion_ml["red"], "green_ml": potion_ml["green"], "blue_ml": potion_ml["blue"], "dark_ml": potion_ml["dark"]}]
+        [{"red_ml": num_red_ml_delivered, "green_ml": num_green_ml_delivered, "blue_ml": num_blue_ml_delivered, "dark_ml": num_dark_ml_delivered}]
     )
 
     print(f"(second) barrels delivered: {barrels_delivered} order_id: {order_id}")
@@ -92,14 +77,14 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
 @router.post("/plan")
 def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ Purchase a new barrel for r,g,b,d if the potion inventory is low. """
-    
+    print("CALLED get_wholesale_purchase_plan()")
     print(f"barrel catalog: {wholesale_catalog}")
-    
-    # with db.engine.begin() as connection:
-    #     result = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory"))
-    #     cur_gold = result.scalar()
+    print()
+
+    min_gold_reserve = 600
 
     with db.engine.begin() as connection:
+
         cur_gold = connection.execute(sqlalchemy.text(
             """
             SELECT SUM(gold_change)
@@ -107,32 +92,155 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             """
         )).scalar_one()
 
-    purchase_plan = []
-    quantity = {barrel.sku: 0 for barrel in wholesale_catalog}
+        total_ml = connection.execute(sqlalchemy.text(
+            """
+            SELECT COALESCE(SUM(red_ml_change + green_ml_change + blue_ml_change + dark_ml_change), 0)
+            FROM ml_ledger
+            """
+        )).scalar() or 0
 
-    max_attempts = 4
-    attempts = 0
-    print(f"Current Gold (barrels.py) before purchasing: {cur_gold}")
-    # Process up to 5 times or until there is no more gold
-    while cur_gold >= 4000 and attempts < max_attempts: 
-        attempts += 1
-        for barrel in wholesale_catalog:
-            if cur_gold >= barrel.price:
-                if 'SMALL' in barrel.sku:
-                    quantity[barrel.sku] += 1
-                    barrel.quantity -= 1
-                    cur_gold -= barrel.price
+        ml_capacity = connection.execute(sqlalchemy.text("SELECT ml_c from capacities")).scalar() or 0
+
+    gold_spent_threshold = 0.7
+    print(f"ml capacity: {ml_capacity}")
+    print(f"total ml from database: {total_ml}")
+    ml_room = ml_capacity - total_ml
+    print(f"ml room: {ml_room}")
+    available_gold = (cur_gold - min_gold_reserve) * gold_spent_threshold
     
-    print(f"Current Gold (barrels.py): {cur_gold}")
+    purchase_plan = []
+    #quantity = {barrel.sku: 0 for barrel in wholesale_catalog}
+
+    if ml_room <= 0 or available_gold <= 0:
+        return []
     
-    for barrel in wholesale_catalog:
-        if(quantity[barrel.sku] != 0):
-            purchase_plan.append(
-                {
-                    "sku":barrel.sku,
-                    "quantity": quantity[barrel.sku]
-                }
+    print(f"cur_gold: {cur_gold}")
+    print(f"available_gold: {available_gold}")
+    large_budget = int(available_gold * 0.4)
+    medium_budget = int(available_gold * 0.3)
+    small_budget = int(available_gold * 0.3)
+    tiered_priority = ["LARGE", "MEDIUM", "SMALL"]
+    
+    print()
+    print(f"large_budget: {large_budget}")
+    print(f"medium_budget: {medium_budget}")
+    print(f"small_budget: {small_budget}")
+    print()
+
+    print(f"available_gold: {available_gold}")
+    print()
+
+    # Inventory check to prioritize colors with lowest stock
+    with db.engine.begin() as connection:
+        color_inventory = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT 
+                    COALESCE(SUM(red_ml_change), 0) AS red_ml,
+                    COALESCE(SUM(green_ml_change), 0) AS green_ml,
+                    COALESCE(SUM(blue_ml_change), 0) AS blue_ml,
+                    COALESCE(SUM(dark_ml_change), 0) AS dark_ml
+                FROM ml_ledger
+                """
             )
+        ).fetchone()
+    
+    color_priority = sorted(
+        [
+            ("dark", color_inventory.dark_ml),
+            ("red", color_inventory.red_ml),
+            ("green", color_inventory.green_ml),
+            ("blue", color_inventory.blue_ml)
+        ],
+        key=lambda x: x[1]
+    )  # Prioritize colors with lowest ml
+
+    colors_purchased = set()
+    print("Sorting test!")
+    print(f"color priority: {color_priority}" )
+    
+    print()
+
+    for tier in tiered_priority:
+        for color, current_ml in color_priority:
+
+            # Condition to skip buying for this color if it's greater than 3000
+            if current_ml > 3000:
+                continue
+
+            for barrel in wholesale_catalog:
+                if color.upper() in barrel.sku and tier in barrel.sku and barrel.quantity > 0 and ml_room > 0:
+                    if color in colors_purchased:
+                        continue # Skip if color has already been purchased
+
+                    # Choose what budget to use
+                    budget = large_budget if tier == "LARGE" else medium_budget if tier == "MEDIUM" else small_budget
+
+                    # Calculate max quantity that can be purchased
+                    max_quantity = min(
+                        barrel.quantity, # Available stock in catalog
+                        budget // barrel.price, # to check how many barrel I can buy with the budget
+                        ml_room // barrel.ml_per_barrel # to check how many ml I can fit in the ml room
+                    )
+                    print()
+                    print(f"sku: {barrel.sku}")
+                    print(f"max quantity: {max_quantity}")
+                    print(f"barrel.quantity: {barrel.quantity} ")
+                    print(f"budget: {budget}")
+                    print(f"barrel.price: {barrel.price}")
+                    print(f"ml_room: {ml_room}")
+                    print(f"barrel.ml_per_barrel: {barrel.ml_per_barrel}")
+                    print(f"how many barrels I can buy with my budget - budget // barrel.price: {budget // barrel.price}")
+                    print(f"how many ml I can fit in the ml room - ml_room // barrel.ml_per_barrel: {ml_room // barrel.ml_per_barrel}")
+                    
+                    if max_quantity > 0:
+                        purchase_plan.append(
+                            {
+                                "sku": barrel.sku,
+                                "quantity": max_quantity
+                            }
+                        )
+                        spent = int(max_quantity * barrel.price)
+                        budget -= spent
+                        ml_room -= max_quantity * barrel.ml_per_barrel
+                        barrel.quantity -= max_quantity
+
+                        print()
+                        print(f"spent? {spent}")
+                        print(f"budget? {budget}")
+                        print(f"ml_room? {ml_room}")
+                        print(f"barrel_quantity? {barrel.quantity}")
+                        print()
+
+                        # Update budget for the current tier
+                        if tier == "LARGE":
+                            large_budget = budget
+                        elif tier == "MEDIUM":
+                            medium_budget = budget
+                        else:
+                            small_budget = budget
+
+                        print()
+                        print(f"large_budget: {large_budget}")
+                        print(f"medium_budget: {medium_budget}")
+                        print(f"small_budget: {small_budget}")
+                        print()
+
+                        # Mark color as purchased
+                        colors_purchased.add(color)
+
+                        # Stop searching for this color in smaller tiers
+                        break
+
+        # Rollover unused budget to the next tier
+        if tier == "LARGE" and large_budget > 0:
+            medium_budget += large_budget
+            large_budget = 0
+        elif tier == "MEDIUM" and medium_budget > 0:
+            small_budget += medium_budget
+            medium_budget = 0
+    
+    print()                
     print(f"let's see my purchase plan: {purchase_plan}")
     return purchase_plan if purchase_plan else [] # Return an empty plan if purchase is not needed
 
