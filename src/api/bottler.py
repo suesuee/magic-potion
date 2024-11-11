@@ -96,7 +96,7 @@ def get_bottle_plan():
         potion_capacity = capacity_data.potion_c
         production_limit = int(potion_capacity * 0.8)
         base_cap_percentage = 0.2  # Base cap for each potion
-        max_inventory_per_potion = 10
+        max_inventory_per_potion = 5
         # max_per_potion_type = int(potion_capacity * 0.25)  # 25% limit per potion type - uncomment when i have more potion capacity
 
         print()
