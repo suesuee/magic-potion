@@ -113,7 +113,7 @@ def search_orders(
         result = conn.execute(stmt)
         json_result = []
         for row in result:
-            item_sku_display = f"{row.quantity} {row.potion_name}S"
+            item_sku_display = f"{row.quantity} {row.potion_name}s"
             timestamp_display = row.timestamp.isoformat()
             json_result.append(
                 {
