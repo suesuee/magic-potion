@@ -95,7 +95,7 @@ def get_bottle_plan():
         )).fetchone()
         potion_capacity = capacity_data.potion_c
         production_limit = int(potion_capacity * 0.8)
-        base_cap_percentage = 0.2  # Base cap for each potion
+        base_cap_percentage = 0.1  # Base cap for each potion
         max_inventory_per_potion = 5
         # max_per_potion_type = int(potion_capacity * 0.25)  # 25% limit per potion type - uncomment when i have more potion capacity
 
@@ -166,6 +166,9 @@ def get_bottle_plan():
             # Determine base cap using percentage of total capacity
             base_cap = int(potion_capacity * base_cap_percentage)
 
+            print()
+            print(f"current inventory: {current_inventory}")
+            print(f"potion_capacity * 0.25: {potion_capacity * 0.25}")
             # Adjust cap based on current inventory levels using tiered logic
             if current_inventory < potion_capacity * 0.25:
                 tier_cap = int(base_cap * 1.5)  # Increase cap by 50% for low inventory
@@ -173,6 +176,8 @@ def get_bottle_plan():
                 tier_cap = base_cap  # Maintain base cap for medium inventory
             else:
                 tier_cap = int(base_cap * 0.5)  # Decrease cap by 50% for high inventory
+
+            print(f"Tier cap: {tier_cap}")
 
             max_bottles_possible = min(
                 red_ml // potion.num_red_ml if potion.num_red_ml > 0 else float('inf'),
