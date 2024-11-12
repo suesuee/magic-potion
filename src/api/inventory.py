@@ -83,7 +83,7 @@ def get_capacity_plan():
 
     potion_capacity_to_buy = 0
     ml_capacity_to_buy = 0
-    capacity_threshold = 0.75
+    capacity_threshold = 0.5 #to change back
     print()
     print(f"total potion: {total_potions}")
     print(f"potion capacity: {potion_capacity}")
@@ -102,7 +102,7 @@ def get_capacity_plan():
         potion_capacity_to_buy = 1
         gold_to_buy_capacity -= 1000
     
-    print(f"gold_to_buy_capacity: {gold_to_buy_capacity}")
+    print(f"gold_to_buy_capacity for potion: {gold_to_buy_capacity}")
 
     # how many capacity I have in my database
     num_potion_capacity = potion_capacity // 50
@@ -119,6 +119,8 @@ def get_capacity_plan():
     ):
         ml_capacity_to_buy = 1
         gold_to_buy_capacity -= 1000
+
+    print(f"gold_to_buy_capacity for ml: {gold_to_buy_capacity}")
     
     # use this later in the game
     # if (
