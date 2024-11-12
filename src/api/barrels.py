@@ -119,7 +119,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     large_budget = int(available_gold * 0.4)
     medium_budget = int(available_gold * 0.3)
     small_budget = int(available_gold * 0.3)
-    tiered_priority = ["LARGE", "MEDIUM", "SMALL"]
+    tiered_priority = ["SMALL", "MEDIUM", "LARGE"]
     
     # print()
     # print(f"large_budget: {large_budget}")
