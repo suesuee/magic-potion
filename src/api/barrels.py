@@ -43,11 +43,11 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
         elif barrel.potion_type == [0, 0, 0, 1]:
              num_dark_ml_delivered += barrel.ml_per_barrel * barrel.quantity
              total_cost += barrel.price * barrel.quantity
-        print()
-        print(f"Red ml delivered: {num_red_ml_delivered}")
-        print(f"Green ml delivered: {num_green_ml_delivered}")
-        print(f"Blue ml delivered: {num_blue_ml_delivered}")
-        print(f"Dark ml delivered: {num_dark_ml_delivered}")
+        # print()
+        # print(f"Red ml delivered: {num_red_ml_delivered}")
+        # print(f"Green ml delivered: {num_green_ml_delivered}")
+        # print(f"Blue ml delivered: {num_blue_ml_delivered}")
+        # print(f"Dark ml delivered: {num_dark_ml_delivered}")
 
     print(f"total cost or total gold paid (final): {total_cost}")
     
@@ -114,21 +114,21 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     if ml_room <= 0 or available_gold <= 0:
         return []
     
-    print(f"cur_gold: {cur_gold}")
-    print(f"available_gold: {available_gold}")
+    # print(f"cur_gold: {cur_gold}")
+    # print(f"available_gold: {available_gold}")
     large_budget = int(available_gold * 0.4)
     medium_budget = int(available_gold * 0.3)
     small_budget = int(available_gold * 0.3)
     tiered_priority = ["LARGE", "MEDIUM", "SMALL"]
     
-    print()
-    print(f"large_budget: {large_budget}")
-    print(f"medium_budget: {medium_budget}")
-    print(f"small_budget: {small_budget}")
-    print()
+    # print()
+    # print(f"large_budget: {large_budget}")
+    # print(f"medium_budget: {medium_budget}")
+    # print(f"small_budget: {small_budget}")
+    # print()
 
-    print(f"available_gold: {available_gold}")
-    print()
+    # print(f"available_gold: {available_gold}")
+    # print()
 
     # Inventory check to prioritize colors with lowest stock
     with db.engine.begin() as connection:
@@ -159,7 +159,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     print("Sorting test!")
     print(f"color priority: {color_priority}" )
     
-    print()
+    #print()
 
     for tier in tiered_priority:
         for color, current_ml in color_priority:
@@ -182,16 +182,16 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         budget // barrel.price, # to check how many barrel I can buy with the budget
                         ml_room // barrel.ml_per_barrel # to check how many ml I can fit in the ml room
                     )
-                    print()
-                    print(f"sku: {barrel.sku}")
-                    print(f"max quantity: {max_quantity}")
-                    print(f"barrel.quantity: {barrel.quantity} ")
-                    print(f"budget: {budget}")
-                    print(f"barrel.price: {barrel.price}")
-                    print(f"ml_room: {ml_room}")
-                    print(f"barrel.ml_per_barrel: {barrel.ml_per_barrel}")
-                    print(f"how many barrels I can buy with my budget - budget // barrel.price: {budget // barrel.price}")
-                    print(f"how many ml I can fit in the ml room - ml_room // barrel.ml_per_barrel: {ml_room // barrel.ml_per_barrel}")
+                    # print()
+                    # print(f"sku: {barrel.sku}")
+                    # print(f"max quantity: {max_quantity}")
+                    # print(f"barrel.quantity: {barrel.quantity} ")
+                    # print(f"budget: {budget}")
+                    # print(f"barrel.price: {barrel.price}")
+                    # print(f"ml_room: {ml_room}")
+                    # print(f"barrel.ml_per_barrel: {barrel.ml_per_barrel}")
+                    # print(f"how many barrels I can buy with my budget - budget // barrel.price: {budget // barrel.price}")
+                    # print(f"how many ml I can fit in the ml room - ml_room // barrel.ml_per_barrel: {ml_room // barrel.ml_per_barrel}")
                     
                     if max_quantity > 0:
                         purchase_plan.append(
@@ -205,12 +205,12 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         ml_room -= max_quantity * barrel.ml_per_barrel
                         barrel.quantity -= max_quantity
 
-                        print()
-                        print(f"spent? {spent}")
-                        print(f"budget? {budget}")
-                        print(f"ml_room? {ml_room}")
-                        print(f"barrel_quantity? {barrel.quantity}")
-                        print()
+                        # print()
+                        # print(f"spent? {spent}")
+                        # print(f"budget? {budget}")
+                        # print(f"ml_room? {ml_room}")
+                        # print(f"barrel_quantity? {barrel.quantity}")
+                        # print()
 
                         # Update budget for the current tier
                         if tier == "LARGE":
@@ -220,11 +220,11 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         else:
                             small_budget = budget
 
-                        print()
-                        print(f"large_budget: {large_budget}")
-                        print(f"medium_budget: {medium_budget}")
-                        print(f"small_budget: {small_budget}")
-                        print()
+                        # print()
+                        # print(f"large_budget: {large_budget}")
+                        # print(f"medium_budget: {medium_budget}")
+                        # print(f"small_budget: {small_budget}")
+                        # print()
 
                         # Mark color as purchased
                         colors_purchased.add(color)
