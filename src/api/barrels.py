@@ -114,7 +114,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         small_budget = int(available_gold * 1) #to change back to 0.3
         tiered_priority = ["SMALL", "MEDIUM", "LARGE"]
     elif cur_gold < 1000:
-        min_gold_reserve = 150 
+        min_gold_reserve = 100 
         gold_spent_threshold = 1 
         print(f"ml capacity: {ml_capacity}")
         print(f"total ml from database: {total_ml}")
@@ -124,11 +124,11 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         print(f"cur_gold less than 1000: {cur_gold}")
         print(f"available_gold: {available_gold}")
         large_budget = int(available_gold * 0) #to change back to 0.4
-        medium_budget = int(available_gold * 0.35) #to change back to 0.3
+        medium_budget = int(available_gold * 0.6) #to change back to 0.3
         small_budget = int(available_gold * 0.4) #to change back to 0.3
         tiered_priority = ["MEDIUM", "SMALL", "LARGE"]
-    else: 
-        min_gold_reserve = 400 # to change back to 600
+    elif cur_gold < 2000: 
+        min_gold_reserve = 200 # to change back to 600
         gold_spent_threshold = 0.7 #to change back to 0.7
         print(f"ml capacity: {ml_capacity}")
         print(f"total ml from database: {total_ml}")
@@ -137,8 +137,22 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         available_gold = (cur_gold - min_gold_reserve) * gold_spent_threshold
         print(f"cur_gold more than 1000: {cur_gold}")
         print(f"available_gold: {available_gold}")
-        large_budget = int(available_gold * 0.5) #to change back to 0.4
-        medium_budget = int(available_gold * 0.4) #to change back to 0.3
+        large_budget = int(available_gold * 0.4) #to change back to 0.4
+        medium_budget = int(available_gold * 0.5) #to change back to 0.3
+        small_budget = int(available_gold * 0.1) #to change back to 0.3
+        tiered_priority = ["MEDIUM", "LARGE", "SMALL"]
+    else:
+        min_gold_reserve = 600 # to change back to 600
+        gold_spent_threshold = 0.7 #to change back to 0.7
+        print(f"ml capacity: {ml_capacity}")
+        print(f"total ml from database: {total_ml}")
+        ml_room = ml_capacity - total_ml
+        print(f"ml room: {ml_room}")
+        available_gold = (cur_gold - min_gold_reserve) * gold_spent_threshold
+        print(f"cur_gold more than 1000: {cur_gold}")
+        print(f"available_gold: {available_gold}")
+        large_budget = int(available_gold * 0.6) #to change back to 0.4
+        medium_budget = int(available_gold * 0.3) #to change back to 0.3
         small_budget = int(available_gold * 0.1) #to change back to 0.3
         tiered_priority = ["LARGE", "MEDIUM", "SMALL"]
         
@@ -232,11 +246,11 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         barrel.quantity -= max_quantity
 
                         # print()
-                        # print(f"spent? {spent}")
-                        # print(f"budget? {budget}")
-                        # print(f"ml_room? {ml_room}")
-                        # print(f"barrel_quantity? {barrel.quantity}")
-                        # print()
+                        print(f"spent? {spent}")
+                        print(f"budget? {budget}")
+                        print(f"ml_room? {ml_room}")
+                        print(f"barrel_quantity left in barrel catalog? {barrel.quantity}")
+                        print()
 
                         # Update budget for the current tier
                         if tier == "LARGE":
