@@ -81,8 +81,6 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     print(f"barrel catalog: {wholesale_catalog}")
     print()
 
-    min_gold_reserve = 600
-
     with db.engine.begin() as connection:
 
         cur_gold = connection.execute(sqlalchemy.text(
@@ -101,7 +99,8 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
         ml_capacity = connection.execute(sqlalchemy.text("SELECT ml_c from capacities")).scalar() or 0
 
-    gold_spent_threshold = 0.7
+    min_gold_reserve = 0 # to change back to 600
+    gold_spent_threshold = 1 #to change back to 0.7
     print(f"ml capacity: {ml_capacity}")
     print(f"total ml from database: {total_ml}")
     ml_room = ml_capacity - total_ml
@@ -109,26 +108,25 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     available_gold = (cur_gold - min_gold_reserve) * gold_spent_threshold
     
     purchase_plan = []
-    #quantity = {barrel.sku: 0 for barrel in wholesale_catalog}
 
     if ml_room <= 0 or available_gold <= 0:
         return []
     
-    # print(f"cur_gold: {cur_gold}")
+    print(f"cur_gold: {cur_gold}")
     # print(f"available_gold: {available_gold}")
-    large_budget = int(available_gold * 0.4)
-    medium_budget = int(available_gold * 0.3)
-    small_budget = int(available_gold * 0.3)
+    large_budget = int(available_gold * 0) #to change back to 0.4
+    medium_budget = int(available_gold * 0) #to change back to 0.3
+    small_budget = int(available_gold * 1) #to change back to 0.3
     tiered_priority = ["SMALL", "MEDIUM", "LARGE"]
     
-    # print()
-    # print(f"large_budget: {large_budget}")
-    # print(f"medium_budget: {medium_budget}")
-    # print(f"small_budget: {small_budget}")
-    # print()
+    print()
+    print(f"large_budget: {large_budget}")
+    print(f"medium_budget: {medium_budget}")
+    print(f"small_budget: {small_budget}")
+    #print()
 
-    # print(f"available_gold: {available_gold}")
-    # print()
+    print(f"available_gold: {available_gold}")
+    print()
 
     # Inventory check to prioritize colors with lowest stock
     with db.engine.begin() as connection:

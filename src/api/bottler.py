@@ -101,11 +101,11 @@ def get_bottle_plan():
         # max_per_potion_type = int(potion_capacity * 0.25)  # 25% limit per potion type - uncomment when i have more potion capacity
 
         # print()
-        # print(f"potion capacity: {potion_capacity}")
-        # print(f"production_limit: {production_limit}")
-        # print(f"base_cap_percentage: {base_cap_percentage}")
-        # print(f"max_inventory_per_potion: {max_inventory_per_potion}")
-        # print(f"max per potion type: {max_per_potion_type}")
+        print(f"potion capacity: {potion_capacity}")
+        print(f"production_limit: {production_limit}")
+        print(f"base_cap_percentage: {base_cap_percentage}")
+        print(f"max_inventory_per_potion: {max_inventory_per_potion}")
+        # print(f"max per potion type: {max_per_potion_type}") this is not used
     
     with db.engine.begin() as connection:
         potion_data = connection.execute(sqlalchemy.text(
@@ -169,9 +169,9 @@ def get_bottle_plan():
         # Determine base cap using percentage of total capacity
         base_cap = int(potion_capacity * base_cap_percentage)
 
-        # print()
-        # print(f"current inventory: {current_inventory}")
-        # print(f"potion_capacity * 0.25: {potion_capacity * 0.25}")
+        print()
+        print(f"current inventory: {current_inventory}")
+        print(f"potion_capacity * 0.25: {potion_capacity * 0.25}")
         # Adjust cap based on current inventory levels using tiered logic
         if total_inventory < potion_capacity * 0.25:
             tier_cap = int(base_cap * 1.5)  # Increase cap by 50% for low inventory
@@ -188,14 +188,14 @@ def get_bottle_plan():
             blue_ml // potion.num_blue_ml if potion.num_blue_ml > 0 else float('inf'),
             dark_ml // potion.num_dark_ml if potion.num_dark_ml > 0 else float ('inf')
         )
-        # print()
-        # print(f"potion color: {potion.sku}")
+        print()
+        print(f"potion color: {potion.sku}")
         # print()
         # print(f"red_ml // potion.num_red_ml: {red_ml // potion.num_red_ml if potion.num_red_ml > 0 else 0}")
         # print(f"green_ml // potion.num_green_ml: {green_ml // potion.num_green_ml if potion.num_green_ml > 0 else 0}")
         # print(f"blue_ml // potion.num_blue_ml: {blue_ml // potion.num_blue_ml if potion.num_blue_ml > 0 else 0}")
         # print(f"dark_ml // potion.num_dark_ml: {dark_ml // potion.num_dark_ml if potion.num_dark_ml > 0 else 0}")
-        # print(f"max_bottles_possible: {max_bottles_possible}")
+        print(f"max_bottles_possible: {max_bottles_possible}")
 
         # Limit production to the per-potion cap, available capacity, and max inventory
         target_quantity = min(
@@ -228,9 +228,9 @@ def get_bottle_plan():
         #production_limit -= target_quantity
 
         # print()
-        # print(f"TOTAL POTION MADE after the if target_quantity > 0: {total_potion_made}")
-        # print(f"TOTAL_INVENTORY: {total_inventory}")
-        # print(f"production_limit before break 2: {production_limit}")
+        print(f"TOTAL POTION MADE after the if target_quantity > 0: {total_potion_made}")
+        print(f"TOTAL_INVENTORY: {total_inventory}")
+        print(f"production_limit before break 2: {production_limit}")
 
         # print()
 
