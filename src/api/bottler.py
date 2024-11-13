@@ -145,9 +145,9 @@ def get_bottle_plan():
             random.random()  # Random tie-breaking
         )
     )
-    print()
-    print(f"sorted_potions: {sorted_potions}")
-    print()
+    #print()
+    #print(f"sorted_potions: {sorted_potions}")
+    #print()
     
     total_potion_made = 0
     my_bottle_plan = []

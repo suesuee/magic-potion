@@ -185,21 +185,26 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             )
         ).fetchone()
     
-    color_priority = sorted(
-        [
-            ("dark", color_inventory.dark_ml),
-            ("red", color_inventory.red_ml),
-            ("green", color_inventory.green_ml),
-            ("blue", color_inventory.blue_ml)
-        ],
-        key=lambda x: x[1]
-    )  # Prioritize colors with lowest ml
+    # Create the initial list of colors with their ml values
+    color_priority = [
+        ("dark", color_inventory.dark_ml),
+        ("red", color_inventory.red_ml),
+        ("green", color_inventory.green_ml),
+        ("blue", color_inventory.blue_ml)
+    ]
+
+    # Separate "dark" from other colors
+    fixed_color = [color_priority[0]]  # "dark" is fixed at the first position
+    other_colors = color_priority[1:]  # Remaining colors
+
+    # Shuffle the remaining colors
+    random.shuffle(other_colors)
+
+    # Combine the fixed color ("dark") with the shuffled other colors
+    color_priority = fixed_color + other_colors
 
     colors_purchased = set()
-    print("Sorting test!")
-    print(f"color priority: {color_priority}" )
-    
-    #print()
+    print(f"color priority sorted: {color_priority}" )
 
     for tier in tiered_priority:
         for color, current_ml in color_priority:
