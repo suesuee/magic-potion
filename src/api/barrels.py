@@ -100,7 +100,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         ml_capacity = connection.execute(sqlalchemy.text("SELECT ml_c from capacities")).scalar() or 0
 
     if cur_gold < 300: 
-        min_gold_reserve = 0 
+        min_gold_reserve = 100 
         gold_spent_threshold = 1
         print(f"ml capacity: {ml_capacity}")
         print(f"total ml from database: {total_ml}")
@@ -210,7 +210,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         for color, current_ml in color_priority:
 
             # Condition to skip buying for this color if it's greater than 3000
-            if current_ml >= 300: # to change back
+            if current_ml >= 300: # to change back t0 3000
                 continue
 
             for barrel in wholesale_catalog:
