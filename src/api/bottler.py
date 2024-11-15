@@ -140,8 +140,8 @@ def get_bottle_plan():
         potion_data,
         key=lambda p: (
             0 if p.num_dark_ml > 0 else 1,  # Special case
-            -sum(1 for ml in [p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml] if ml > 0),  # Count of non-zero MLs
-            p.price,  # Price in descending order
+            sum(1 for ml in [p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml] if ml > 0),  # Count of non-zero MLs
+            p.price,  # Price in asc order - cheapest first
             random.random()  # Random tie-breaking
         )
     )
