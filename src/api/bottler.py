@@ -154,7 +154,7 @@ def get_bottle_plan():
     potion_quantities = {potion.sku: 0 for potion in sorted_potions}
 
     
-    random.shuffle(sorted_potions)
+    # random.shuffle(sorted_potions) to change back
     for potion in sorted_potions:
         
         # Skip production if total inventory for this potion already exceeds the max inventory cap
