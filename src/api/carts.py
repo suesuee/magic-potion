@@ -300,8 +300,6 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             """
             SELECT SUM(qty * price)
             FROM cart_items
-            JOIN potions_inventory ON potions_inventory.potion_id = cart_items.potion_id
-            WHERE cart_id = :cart_id
             """
         ), {"cart_id": cart_id}).scalar_one()
 
