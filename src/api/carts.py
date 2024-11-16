@@ -72,7 +72,7 @@ def search_orders(
     elif sort_col is search_sort_options.item_sku:
         order_by = db.potions_inventory.c.potion_name
     elif sort_col is search_sort_options.line_item_total:
-        order_by = db.cart_items.c.qty * db.potions_inventory.c.price
+        order_by = db.cart_items.c.price
     elif sort_col is search_sort_options.timestamp:
         order_by = db.cart_items.c.added_at
     else: 
@@ -232,26 +232,13 @@ class CartItem(BaseModel):
 @router.post("/{cart_id}/items/{item_sku}")
 def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     """ Customers can add multiple items of green potions. Check cart and inventory first.  """
-    
-    # # Fetch potion details from potion_inventory
-    # with db.engine.begin() as connection:
-    #     potion_result = connection.execute(sqlalchemy.text(
-    #         "SELECT potion_id FROM potions_inventory WHERE sku = :item_sku"
-    #     ), {"item_sku": item_sku})
-    #     row = potion_result.fetchone()
 
-    #     if not row:
-    #         return {"success": False, "message": "Potion not found in inventory."}, 404
-
-    #     potion_id = row[0]
-
-    
     # Update or insert the cart_items record
     with db.engine.begin() as connection:
         # Define the SQL statement to insert or update cart items
         create_cart_items_sql = """
-            INSERT INTO cart_items (cart_id, potion_id, qty, added_at)
-            SELECT :cart_id, potions_inventory.potion_id, :qty, now()
+            INSERT INTO cart_items (cart_id, potion_id, qty, added_at, price)
+            SELECT :cart_id, potion_id, :qty, now(), :qty * price
             FROM potions_inventory
             WHERE potions_inventory.sku = :item_sku
             ON CONFLICT (cart_id, potion_id) DO UPDATE SET qty = :qty
@@ -292,16 +279,6 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     total_price = 0
 
     with db.engine.begin() as connection:
-        # connection.execute(sqlalchemy.text(
-        #     """
-        #     UPDATE potions_inventory
-        #     SET inventory = potions_inventory.inventory - cart_items.qty
-        #     FROM cart_items
-        #     WHERE potions_inventory.potion_id = cart_items.potion_id
-        #     AND cart_items.cart_id = :cart_id;
-        #     """
-        # ), {"cart_id": cart_id})
-
         connection.execute(sqlalchemy.text(
             """
             INSERT INTO potion_ledger(potion_id, potion_change)
@@ -328,12 +305,6 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             """
         ), {"cart_id": cart_id}).scalar_one()
 
-        # connection.execute(sqlalchemy.text(
-        #     """
-        #     UPDATE global_inventory
-        #     SET gold = gold + :total_gold_price
-        #     """
-        # ), {"total_gold_price": total_price})
         connection.execute(sqlalchemy.text(
              """
             INSERT INTO gold_ledger(gold_change)
