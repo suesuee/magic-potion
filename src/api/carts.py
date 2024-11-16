@@ -72,7 +72,7 @@ def search_orders(
     elif sort_col is search_sort_options.item_sku:
         order_by = db.potions_inventory.c.potion_name
     elif sort_col is search_sort_options.line_item_total:
-        order_by = db.cart_items.c.price
+        order_by = db.cart_items.c.gold_paid
     elif sort_col is search_sort_options.timestamp:
         order_by = db.cart_items.c.added_at
     else: 
@@ -89,7 +89,7 @@ def search_orders(
             db.cart_items.c.qty.label("quantity"),
             db.potions_inventory.c.sku,
             db.potions_inventory.c.potion_name,
-            (db.cart_items.c.qty * db.potions_inventory.c.price).label("line_item_total"),
+            db.cart_items.c.gold_paid.label("line_item_total"),
             db.cart_items.c.added_at.label("timestamp")
         )
         .select_from(
@@ -237,7 +237,7 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     with db.engine.begin() as connection:
         # Define the SQL statement to insert or update cart items
         create_cart_items_sql = """
-            INSERT INTO cart_items (cart_id, potion_id, qty, added_at, price)
+            INSERT INTO cart_items (cart_id, potion_id, qty, added_at, gold_paid)
             SELECT :cart_id, potion_id, :qty, now(), :qty * price
             FROM potions_inventory
             WHERE potions_inventory.sku = :item_sku
@@ -290,7 +290,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         
         total_potions_bought = connection.execute(sqlalchemy.text(
             """
-            SELECT SUM(qty)
+            SELECT qty
             FROM cart_items
             WHERE cart_id = :cart_id
             """
@@ -298,8 +298,10 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
 
         total_price = connection.execute(sqlalchemy.text(
             """
-            SELECT SUM(qty * price)
+            SELECT SUM(qty * potions_inventory.price)
             FROM cart_items
+            JOIN potions_inventory ON potions_inventory.potion_id = cart_items.potion_id
+            WHERE cart_id = :cart_id
             """
         ), {"cart_id": cart_id}).scalar_one()
 
