@@ -95,7 +95,7 @@ def get_bottle_plan():
         )).fetchone()
         potion_capacity = capacity_data.potion_c
         
-        production_limit = int(potion_capacity * 0.95)
+        production_limit = int(potion_capacity * 1) # to change back to 0.95
         base_cap_percentage = 0.1  # Base cap for each potion
         max_inventory_per_potion = 6 # to change back
         # max_per_potion_type = int(potion_capacity * 0.25)  # 25% limit per potion type - uncomment when i have more potion capacity
@@ -140,6 +140,8 @@ def get_bottle_plan():
         potion_data,
         key=lambda p: (
             0 if p.num_dark_ml > 0 else 1,  # Special case
+            # to change back: Special priority for purple potion combination [50, 0, 50, 0] (arcane day)
+            0 if [p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml] == [50, 0, 50, 0] else 1,
             sum(1 for ml in [p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml] if ml > 0),  # Count of non-zero MLs
             p.price,  # Price in asc order - cheapest first
             random.random()  # Random tie-breaking

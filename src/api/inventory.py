@@ -75,11 +75,11 @@ def get_capacity_plan():
         buy_potion = capacity_row.buy_potion_c
         buy_ml = capacity_row.buy_ml_c
     
-    gold_to_buy_capacity_threshold = 0.6 #to change back to 0.5
+    gold_to_buy_capacity_threshold = 1 #to change back to 0.5
     # use the threshold I set of my available gold to buy capacities
     #gold_to_buy_capacity = max(gold // 4, 0) if gold >= 4000 else 0
     gold_to_buy_capacity = (gold * gold_to_buy_capacity_threshold)
-    print(f"gold_to_buy_capacity (0.6): {gold_to_buy_capacity}")
+    print(f"gold_to_buy_capacity (1): {gold_to_buy_capacity}")
 
     potion_capacity_to_buy = 0
     ml_capacity_to_buy = 0
