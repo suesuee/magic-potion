@@ -131,22 +131,39 @@ def get_bottle_plan():
     print()
     print(f"total_inventory from database: {total_inventory}")
 
-    # Sort potions:
-    # 1. Special case [0, 0, 0, 100] is prioritized first.
-    # 2. Mixed potions (more non-zero MLs) are prioritized over single ML potions.
-    # 3. Higher price is prioritized.
-    # 4. Randomization for tie-breaking.
+    # Define priority based on popularity ranking
+    potion_priority = {
+        (100, 0, 0, 0): 1,
+        (50, 0, 50, 0): 2,
+        (0, 100, 0, 0): 3,
+        (50, 50, 0, 0): 4,
+        (0, 0, 100, 0): 5,
+        (20, 0, 80, 0): 6,
+        (80, 20, 0, 0): 6,
+        (30, 25, 45, 0): 8,
+    }
+
     sorted_potions = sorted(
         potion_data,
         key=lambda p: (
             0 if p.num_dark_ml > 0 else 1,  # Special case
-            # to change back: Special priority for purple potion combination [50, 0, 50, 0] (arcane day)
-            0 if [p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml] == [50, 0, 50, 0] else 1,
+            potion_priority.get(tuple([p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml]), float('inf')),  # Popularity priority
             sum(1 for ml in [p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml] if ml > 0),  # Count of non-zero MLs
-            p.price,  # Price in asc order - cheapest first
+            p.price,  # Price in ascending order - cheapest first
             random.random()  # Random tie-breaking
         )
     )
+    # sorted_potions = sorted(
+    #     potion_data,
+    #     key=lambda p: (
+    #         0 if p.num_dark_ml > 0 else 1,  # Special case
+    #         # to change back: Special priority for purple potion combination [50, 0, 50, 0] (arcane day)
+    #         0 if [p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml] == [50, 0, 50, 0] else 1,
+    #         sum(1 for ml in [p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml] if ml > 0),  # Count of non-zero MLs
+    #         p.price,  # Price in asc order - cheapest first
+    #         random.random()  # Random tie-breaking
+    #     )
+    # )
     #print()
     #print(f"sorted_potions: {sorted_potions}")
     #print()
