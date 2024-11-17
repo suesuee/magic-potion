@@ -147,6 +147,7 @@ def get_bottle_plan():
         potion_data,
         key=lambda p: (
             0 if p.num_dark_ml > 0 else 1,  # Special case
+            1 if [p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml] in [[0, 50, 50, 0], [0, 30, 70, 0]] else 0,  # Deprioritize specific potions
             potion_priority.get(tuple([p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml]), float('inf')),  # Popularity priority
             sum(1 for ml in [p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml] if ml > 0),  # Count of non-zero MLs
             p.price,  # Price in ascending order - cheapest first
