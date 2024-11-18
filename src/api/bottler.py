@@ -95,9 +95,9 @@ def get_bottle_plan():
         )).fetchone()
         potion_capacity = capacity_data.potion_c
         
-        production_limit = int(potion_capacity * 1) # to change back to 0.95
+        production_limit = int(potion_capacity * 0.9) # to change back to 0.95
         base_cap_percentage = 0.1 # Base cap for each potion
-        max_inventory_per_potion = 6 # to change back
+        max_inventory_per_potion = 7 # to change back
         # max_per_potion_type = int(potion_capacity * 0.25)  # 25% limit per potion type - uncomment when i have more potion capacity
 
         # print()
@@ -134,13 +134,13 @@ def get_bottle_plan():
     # Define priority based on popularity ranking
     potion_priority = {
         (100, 0, 0, 0): 1,
-        (50, 0, 50, 0): 2,
+        (0, 0, 100, 0): 2,
         (0, 100, 0, 0): 3,
         (50, 50, 0, 0): 4,
-        (0, 0, 100, 0): 5,
-        (20, 0, 80, 0): 6,
+        (20, 0, 80, 0): 5,
         (80, 20, 0, 0): 6,
-        (30, 25, 45, 0): 8,
+        (30, 25, 45, 0): 7,
+        (50, 0, 50, 0): 8 # PURPLE
     }
 
     sorted_potions = sorted(
@@ -197,14 +197,18 @@ def get_bottle_plan():
         #print(f"potion_capacity * 0.25: {potion_capacity * 0.25}")
 
         # Adjust cap for each potion based on current inventory levels using tiered logic
-        if total_inventory < potion_capacity * 0.25:
-            tier_cap = int(base_cap * 1.5)  # Increase cap by 50% for low inventory
-        elif total_inventory < potion_capacity * 0.75:
+        if total_inventory < production_limit * 0.25:
+            tier_cap = int(base_cap * 1)  # Increase cap by 50% for low inventory 1.25
+            print(f"potion inventory 1 : {production_limit * 0.25}")
+            print(f"Tier cap 1: {tier_cap}")
+        elif total_inventory < production_limit * 0.75:
             tier_cap = base_cap  # Maintain base cap for medium inventory
+            print(f"potion inventory 0.75: {production_limit * 0.75}")
+            print(f"Tier cap 0.75: {tier_cap}")
         else:
-            tier_cap = int(base_cap * 0.5)  # Decrease cap by 50% for high inventory
-
-        print(f"Tier cap: {tier_cap}")
+            tier_cap = int(base_cap * 0.3)  # Decrease cap by 50% for high inventory
+            print(f"potion inventory 0.3: {production_limit * 0.3}")
+            print(f"Tier cap 0.3: {tier_cap}")
 
         max_bottles_possible = min(
             red_ml // potion.num_red_ml if potion.num_red_ml > 0 else float('inf'),

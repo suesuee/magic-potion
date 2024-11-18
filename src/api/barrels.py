@@ -100,7 +100,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         ml_capacity = connection.execute(sqlalchemy.text("SELECT ml_c from capacities")).scalar() or 0
 
     if cur_gold < 1000:
-        min_gold_reserve = 100 
+        min_gold_reserve = 0 
         gold_spent_threshold = 1 
         print(f"ml capacity: {ml_capacity}")
         print(f"total ml from database: {total_ml}")
@@ -109,12 +109,12 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         available_gold = (cur_gold - min_gold_reserve) * gold_spent_threshold
         print(f"cur_gold less than 1000: {cur_gold}")
         print(f"available_gold: {available_gold}")
-        large_budget = int(available_gold * 0) #to change back to 0.4
-        medium_budget = int(available_gold * 0.6) #to change back to 0.3
-        small_budget = int(available_gold * 0.4) #to change back to 0.3
+        large_budget = int(available_gold * 1) #to change back to 0.4
+        medium_budget = int(available_gold * 0) #to change back to 0.3
+        small_budget = int(available_gold * 0) #to change back to 0.3
         tiered_priority = ["MEDIUM", "SMALL", "LARGE"]
     elif cur_gold < 2000: 
-        min_gold_reserve = 200 # to change back to 600
+        min_gold_reserve = 0 # to change back to 600
         gold_spent_threshold = 0.7 #to change back to 0.7
         print(f"ml capacity: {ml_capacity}")
         print(f"total ml from database: {total_ml}")
@@ -128,7 +128,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         small_budget = int(available_gold * 0.1) #to change back to 0.3
         tiered_priority = ["MEDIUM", "LARGE", "SMALL"]
     else:
-        min_gold_reserve = 600 # to change back to 600
+        min_gold_reserve = 0 # to change back to 600
         gold_spent_threshold = 0.7 #to change back to 0.7
         print(f"ml capacity: {ml_capacity}")
         print(f"total ml from database: {total_ml}")
@@ -209,7 +209,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
                     # Calculate max quantity that can be purchased
                     max_quantity = min(
-                        2, # to change back to remove it
+                         # to change back to remove it
                         barrel.quantity, # Available stock in catalog
                         budget // barrel.price, # to check how many barrel I can buy with the budget
                         ml_room // barrel.ml_per_barrel # to check how many ml I can fit in the ml room
