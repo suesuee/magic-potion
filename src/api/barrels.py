@@ -126,7 +126,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         large_budget = int(available_gold * 0.3) #to change back to 0.4
         medium_budget = int(available_gold * 0.7) #to change back to 0.3
         small_budget = int(available_gold * 0.0) #to change back to 0.3
-        tiered_priority = ["MEDIUM", "LARGE", "SMALL"]
+        tiered_priority = ["MEDIUM", "LARGE"]
     else:
         min_gold_reserve = 0 # to change back to 600
         gold_spent_threshold = 0.9 #to change back to 0.7
@@ -199,7 +199,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         for color, current_ml in color_priority:
 
             # Condition to skip buying for this color if it's greater than 3000
-            if current_ml >= 2000: # to change back t0 3000
+            if current_ml >= 3000: # to change back t0 3000
                 continue
 
             for barrel in wholesale_catalog:
@@ -212,7 +212,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
                     # Calculate max quantity that can be purchased
                     max_quantity = min(
-                         # to change back to remove it
+                        2, # to change back to remove it
                         barrel.quantity, # Available stock in catalog
                         budget // barrel.price, # to check how many barrel I can buy with the budget
                         ml_room // barrel.ml_per_barrel # to check how many ml I can fit in the ml room
