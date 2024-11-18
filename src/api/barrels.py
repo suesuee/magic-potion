@@ -115,7 +115,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         tiered_priority = ["MEDIUM", "SMALL", "LARGE"]
     elif cur_gold < 2000: 
         min_gold_reserve = 0 # to change back to 600
-        gold_spent_threshold = 0.7 #to change back to 0.7
+        gold_spent_threshold = 0.98 #to change back to 0.7
         print(f"ml capacity: {ml_capacity}")
         print(f"total ml from database: {total_ml}")
         ml_room = ml_capacity - total_ml
@@ -123,13 +123,13 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         available_gold = (cur_gold - min_gold_reserve) * gold_spent_threshold
         print(f"cur_gold more than 1000: {cur_gold}")
         print(f"available_gold: {available_gold}")
-        large_budget = int(available_gold * 0.4) #to change back to 0.4
-        medium_budget = int(available_gold * 0.5) #to change back to 0.3
-        small_budget = int(available_gold * 0.1) #to change back to 0.3
+        large_budget = int(available_gold * 0.3) #to change back to 0.4
+        medium_budget = int(available_gold * 0.7) #to change back to 0.3
+        small_budget = int(available_gold * 0.0) #to change back to 0.3
         tiered_priority = ["MEDIUM", "LARGE", "SMALL"]
     else:
         min_gold_reserve = 0 # to change back to 600
-        gold_spent_threshold = 0.7 #to change back to 0.7
+        gold_spent_threshold = 0.9 #to change back to 0.7
         print(f"ml capacity: {ml_capacity}")
         print(f"total ml from database: {total_ml}")
         ml_room = ml_capacity - total_ml
@@ -184,7 +184,10 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     other_colors = color_priority[1:]  # Remaining colors
 
     # Shuffle the remaining colors
-    random.shuffle(other_colors)
+    # random.shuffle(other_colors)
+
+    # Sort the remaining colors by ml in ascending order
+    other_colors.sort(key=lambda x: x[1])
 
     # Combine the fixed color ("dark") with the shuffled other colors
     color_priority = fixed_color + other_colors
