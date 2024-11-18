@@ -134,19 +134,22 @@ def get_bottle_plan():
     # Define priority based on popularity ranking
     potion_priority = {
         (100, 0, 0, 0): 1,
-        (0, 0, 100, 0): 2,
-        (0, 100, 0, 0): 3,
-        (50, 0, 50, 0): 4, # PURPLE
-        (50, 50, 0, 0): 5,
-        (20, 0, 80, 0): 6,
-        (80, 20, 0, 0): 7,
-        (30, 25, 45, 0): 8
+        (0, 100, 100, 0): 2,
+        (0, 0, 100, 0): 3,
+        (25, 25, 25, 25):4,
+        (50, 0, 50, 0): 5, # PURPLE
+        (50, 50, 0, 0): 6,
+        (20, 0, 80, 0): 7,
+        (0, 80, 0, 20): 8,
+        (80, 20, 0, 0): 9,
+        (60,40, 0, 0): 10,
+        (30, 25, 45, 0): 11
     }
 
     sorted_potions = sorted(
         potion_data,
         key=lambda p: (
-            0 if p.num_dark_ml > 0 else 1,  # Special case
+            # 0 if p.num_dark_ml > 0 else 1,  # Special case
             1 if [p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml] in [[0, 50, 50, 0], [0, 30, 70, 0]] else 0,  # Deprioritize specific potions
             potion_priority.get(tuple([p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml]), float('inf')),  # Popularity priority
             sum(1 for ml in [p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml] if ml > 0),  # Count of non-zero MLs
