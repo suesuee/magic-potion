@@ -126,7 +126,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         large_budget = int(available_gold * 0.3) #to change back to 0.4
         medium_budget = int(available_gold * 0.7) #to change back to 0.3
         small_budget = int(available_gold * 0.0) #to change back to 0.3
-        tiered_priority = ["MEDIUM", "LARGE"]
+        tiered_priority = ["MEDIUM", "LARGE", "SMALL"]
     else:
         min_gold_reserve = 0 # to change back to 600
         gold_spent_threshold = 0.9 #to change back to 0.7
