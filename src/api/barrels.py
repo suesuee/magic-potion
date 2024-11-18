@@ -196,7 +196,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         for color, current_ml in color_priority:
 
             # Condition to skip buying for this color if it's greater than 3000
-            if current_ml >= 2500: # to change back t0 3000
+            if current_ml >= 2000: # to change back t0 3000
                 continue
 
             for barrel in wholesale_catalog:
