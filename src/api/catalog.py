@@ -16,12 +16,18 @@ def get_catalog():
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(
             """
-            SELECT SUM(potion_ledger.potion_change) AS inventory, sku, price, potion_type, potion_name
+            SELECT SUM(potion_ledger.potion_change) AS inventory, 
+                   potions_inventory.sku, 
+                   potions_inventory.price, 
+                   potions_inventory.potion_type, 
+                   potions_inventory.potion_name,
+                   ABS(SUM(CASE WHEN potion_ledger.potion_change < 0 THEN potion_ledger.potion_change ELSE 0 END)) AS total_outgoing
             FROM potions_inventory
             JOIN potion_ledger ON potion_ledger.potion_id = potions_inventory.potion_id
-            GROUP BY potions_inventory.potion_id
+            GROUP BY potions_inventory.potion_id, potions_inventory.sku, potions_inventory.price, 
+                     potions_inventory.potion_type, potions_inventory.potion_name
             HAVING SUM(potion_ledger.potion_change) > 0
-            ORDER BY inventory DESC
+            ORDER BY total_outgoing DESC
             """
         )).fetchall()
 
