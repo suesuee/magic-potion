@@ -27,7 +27,7 @@ def get_catalog():
             GROUP BY potions_inventory.potion_id, potions_inventory.sku, potions_inventory.price, 
                      potions_inventory.potion_type, potions_inventory.potion_name
             HAVING SUM(potion_ledger.potion_change) > 0
-            ORDER BY total_outgoing DESC
+            ORDER BY total_outgoing DESC, inventory DESC
             """
         )).fetchall()
 
