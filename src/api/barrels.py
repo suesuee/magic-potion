@@ -140,7 +140,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         large_budget = int(available_gold * 0.4) #to change back to 0.6
         medium_budget = int(available_gold * 0.6) #to change back to 0.3
         small_budget = int(available_gold * 0) #to change back to 0.1
-        tiered_priority = ["MEDIUM", "LARGE", "SMALL"]
+        tiered_priority = ["MEDIUM", "LARGE"]
         
     purchase_plan = []
 
