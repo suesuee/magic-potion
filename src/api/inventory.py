@@ -83,7 +83,7 @@ def get_capacity_plan():
 
     potion_capacity_to_buy = 0
     ml_capacity_to_buy = 0
-    capacity_threshold = 0.5 #to change back
+    capacity_threshold = 0.6 #to change back
     print()
     print(f"total potion: {total_potions}")
     print(f"potion capacity: {potion_capacity}")
