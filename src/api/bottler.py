@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from src.api import auth
 from src import database as db
 import random
+from itertools import count
 
 router = APIRouter(
     prefix="/bottler",
@@ -130,20 +131,20 @@ def get_bottle_plan():
 
     print()
     print(f"total_inventory from database: {total_inventory}")
-
+    priority_counter = count(1)
     # Define priority based on popularity ranking
     potion_priority = {
-        (25, 25, 25, 25): 1,
-        (100, 0, 0, 0): 2,
-        (0, 0, 100, 0): 3,
-        (0, 100, 0, 0):4,
-        (50, 0, 50, 0): 5, # PURPLE
-        (50, 50, 0, 0): 6,
-        (20, 0, 80, 0): 7,
-        (0, 80, 0, 20): 8,
-        (80, 20, 0, 0): 9,
-        (60,40, 0, 0): 10,
-        (30, 25, 45, 0): 11
+        (25, 25, 25, 25): next(priority_counter),
+        (100, 0, 0, 0): next(priority_counter),
+        # (0, 0, 100, 0): next(priority_counter), # Commented out, no renumbering needed
+        (0, 100, 0, 0): next(priority_counter),
+        (50, 0, 50, 0): next(priority_counter),  # PURPLE
+        (50, 50, 0, 0): next(priority_counter),
+        (20, 0, 80, 0): next(priority_counter),
+        (0, 80, 0, 20): next(priority_counter),
+        (80, 20, 0, 0): next(priority_counter),
+        (60, 40, 0, 0): next(priority_counter),
+        (30, 25, 45, 0): next(priority_counter)
     }
 
     sorted_potions = sorted(

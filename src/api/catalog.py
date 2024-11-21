@@ -16,12 +16,26 @@ def get_catalog():
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(
             """
-            SELECT SUM(potion_ledger.potion_change) AS inventory, sku, price, potion_type, potion_name
-            FROM potions_inventory
-            JOIN potion_ledger ON potion_ledger.potion_id = potions_inventory.potion_id
-            GROUP BY potions_inventory.potion_id
-            HAVING SUM(potion_ledger.potion_change) > 0
-            ORDER BY inventory DESC
+            SELECT 
+                SUM(potion_ledger.potion_change) AS inventory, 
+                sku, 
+                price, 
+                potion_type, 
+                potion_name
+            FROM 
+                potions_inventory
+            JOIN 
+                potion_ledger 
+            ON 
+                potion_ledger.potion_id = potions_inventory.potion_id
+            WHERE 
+                potions_inventory.potion_id NOT IN (2,6,7)
+            GROUP BY 
+                potions_inventory.potion_id
+            HAVING 
+                SUM(potion_ledger.potion_change) > 0
+            ORDER BY 
+                inventory DESC;
             """
         )).fetchall()
 
