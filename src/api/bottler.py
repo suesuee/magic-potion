@@ -136,7 +136,7 @@ def get_bottle_plan():
     potion_priority = {
         (25, 25, 25, 25): next(priority_counter),
         (100, 0, 0, 0): next(priority_counter),
-        # (0, 0, 100, 0): next(priority_counter), # Commented out, no renumbering needed
+        (0, 0, 100, 0): next(priority_counter), # Commented out, no renumbering needed
         (0, 100, 0, 0): next(priority_counter),
         (50, 0, 50, 0): next(priority_counter),  # PURPLE
         (50, 50, 0, 0): next(priority_counter),
