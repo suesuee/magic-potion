@@ -29,13 +29,20 @@ def get_catalog():
             ON 
                 potion_ledger.potion_id = potions_inventory.potion_id
             WHERE 
-                potions_inventory.potion_id NOT IN (2,6,7)
+                potions_inventory.potion_id NOT IN (1,6,7)
             GROUP BY 
                 potions_inventory.potion_id
             HAVING 
                 SUM(potion_ledger.potion_change) > 0
             ORDER BY 
+                CASE 
+                    WHEN potions_inventory.potion_id = 2 THEN 0
+                    WHEN potions_inventory.potion_id = 3 THEN 0
+                    WHEN potions_inventory.potion_id = 11 THEN 0
+                    ELSE 1
+                END, 
                 inventory DESC;
+
             """
         )).fetchall()
 

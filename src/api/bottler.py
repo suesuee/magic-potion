@@ -98,7 +98,7 @@ def get_bottle_plan():
         
         production_limit = int(potion_capacity * 1) # to change back to 0.95
         base_cap_percentage = 0.1 # Base cap for each potion
-        max_inventory_per_potion = 40 # to change back
+        max_inventory_per_potion = 70 # to change back
         # max_per_potion_type = int(potion_capacity * 0.25)  # 25% limit per potion type - uncomment when i have more potion capacity
 
         # print()
@@ -135,7 +135,7 @@ def get_bottle_plan():
     # Define priority based on popularity ranking
     potion_priority = {
         (25, 25, 25, 25): next(priority_counter),
-        (100, 0, 0, 0): next(priority_counter),
+        # (100, 0, 0, 0): next(priority_counter),
         (0, 0, 100, 0): next(priority_counter), # Commented out, no renumbering needed
         (0, 100, 0, 0): next(priority_counter),
         (50, 0, 50, 0): next(priority_counter),  # PURPLE
@@ -150,9 +150,9 @@ def get_bottle_plan():
     sorted_potions = sorted(
         potion_data,
         key=lambda p: (
+            potion_priority.get(tuple([p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml]), float('inf')),  # Popularity priority
             # 0 if p.num_dark_ml > 0 else 1,  # Special case
             1 if [p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml] in [[0, 50, 50, 0], [0, 30, 70, 0]] else 0,  # Deprioritize specific potions
-            potion_priority.get(tuple([p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml]), float('inf')),  # Popularity priority
             sum(1 for ml in [p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml] if ml > 0),  # Count of non-zero MLs
             p.price,  # Price in ascending order - cheapest first
             random.random()  # Random tie-breaking

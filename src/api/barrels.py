@@ -202,7 +202,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             if current_ml >= 10000 and color == "dark":
                 continue
 
-            if current_ml >= 10000:
+            if current_ml >= 15000:
                 continue
 
             for barrel in wholesale_catalog:
@@ -215,7 +215,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
                     # Calculate max quantity that can be purchased
                     max_quantity = min(
-                        7, # to change back to remove it to buy large barrels
+                        # to change back to remove it to buy large barrels
                         barrel.quantity, # Available stock in catalog
                         budget // barrel.price, # to check how many barrel I can buy with the budget
                         ml_room // barrel.ml_per_barrel # to check how many ml I can fit in the ml room
