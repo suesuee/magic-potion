@@ -202,6 +202,9 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             if current_ml >= 10000 and color == "dark":
                 continue
             
+            if current_ml >= 7000 and color == "red":
+                continue
+
             if current_ml >= 7000 and color == "blue":
                 continue
 
