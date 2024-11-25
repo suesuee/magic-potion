@@ -139,7 +139,7 @@ def get_bottle_plan():
         (50, 50, 0, 0): next(priority_counter), # YELLOW
         (25, 25, 25, 25): next(priority_counter),
         (0, 100, 0, 0): next(priority_counter),
-        #(0, 0, 100, 0): next(priority_counter), 
+        (0, 0, 100, 0): next(priority_counter), 
         (20, 0, 80, 0): next(priority_counter),
         (0, 80, 0, 20): next(priority_counter),
         (80, 20, 0, 0): next(priority_counter),
