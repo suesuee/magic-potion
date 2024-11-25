@@ -99,7 +99,7 @@ def search_orders(
             .join(db.potions_inventory, db.cart_items.c.potion_id == db.potions_inventory.c.potion_id)
         )
         .order_by(order_by, db.carts.c.id)
-        .limit(limit)
+        .limit(limit + 1)
         .offset(offset)
     )
 
@@ -111,22 +111,25 @@ def search_orders(
 
     with db.engine.connect() as conn:
         result = conn.execute(stmt)
-        json_result = []
-        for row in result:
-            item_sku_display = f"{row.quantity} {row.potion_name}s"
-            timestamp_display = row.timestamp.isoformat()
-            json_result.append(
-                {
-                    "line_item_id": row.line_item_id,
-                    "item_sku": item_sku_display,
-                    "customer_name": row.customer_name,
-                    "line_item_total": row.line_item_total,
-                    "timestamp": timestamp_display
-                }
-            )
+        rows = result.fetchall()
+
+    has_next_page = len(rows) > limit
+    json_result = []
+    for row in rows[:limit]:
+        item_sku_display = f"{row.quantity} {row.potion_name}s"
+        timestamp_display = row.timestamp.isoformat()
+        json_result.append(
+            {
+                "line_item_id": row.line_item_id,
+                "item_sku": item_sku_display,
+                "customer_name": row.customer_name,
+                "line_item_total": row.line_item_total,
+                "timestamp": timestamp_display
+            }
+        )
     # Pagination tokens for previous and next pages
     previous = f"?search_page={page-1}" if page > 1 else ""
-    next = f"?search_page={page+1}" if len(json_result) < limit else ""
+    next = f"?search_page={page+1}" if has_next_page else ""
 
     return {
         "previous": previous,
