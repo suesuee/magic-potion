@@ -126,7 +126,7 @@ def search_orders(
             )
     # Pagination tokens for previous and next pages
     previous = f"?search_page={page-1}" if page > 1 else ""
-    next = f"?search_page={page+1}" if len(json_result) == limit else ""
+    next = f"?search_page={page+1}" if len(json_result) < limit else ""
 
     return {
         "previous": previous,
