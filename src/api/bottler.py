@@ -137,14 +137,15 @@ def get_bottle_plan():
         (50, 50, 0, 0): next(priority_counter), # YELLOW
         (25, 25, 25, 25): next(priority_counter),
         (0, 100, 0, 0): next(priority_counter),
-        (0, 0, 100, 0): next(priority_counter), 
+        (20, 0, 80, 0): next(priority_counter),
         (0, 80, 0, 20): next(priority_counter),
         (100, 0, 0, 0): next(priority_counter),
-        (50, 50, 0, 0): next(priority_counter), # PURPLE
-        (20, 0, 80, 0): next(priority_counter),
-        (80, 20, 0, 0): next(priority_counter),
+        (75, 25, 0, 0): next(priority_counter),
         (60, 40, 0, 0): next(priority_counter),
-        (30, 25, 45, 0): next(priority_counter)
+        (95, 5, 0, 0): next(priority_counter),
+        (30, 25, 45, 0): next(priority_counter),
+        (50, 50, 0, 0): next(priority_counter), # PURPLE
+        (0, 0, 100, 0): next(priority_counter)
     }
 
     sorted_potions = sorted(
@@ -152,8 +153,8 @@ def get_bottle_plan():
         key=lambda p: (
             potion_priority.get(tuple([p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml]), float('inf')),  # Popularity priority
             # 0 if p.num_dark_ml > 0 else 1,  # Special case
-            1 if [p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml] in [[0, 50, 50, 0], [0, 30, 70, 0]] else 0,  # Deprioritize specific potions
             sum(1 for ml in [p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml] if ml > 0),  # Count of non-zero MLs
+            1 if [p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml] in [[0, 50, 50, 0], [0, 30, 70, 0]] else 0,  # Deprioritize specific potions
             p.price,  # Price in ascending order - cheapest first
             random.random()  # Random tie-breaking
         )

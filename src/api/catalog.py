@@ -29,7 +29,7 @@ def get_catalog():
             ON 
                 potion_ledger.potion_id = potions_inventory.potion_id
             WHERE 
-                potions_inventory.potion_id NOT IN (6,7)
+                potions_inventory.potion_id NOT IN (3,6,7, 14)
             GROUP BY 
                 potions_inventory.potion_id
             HAVING 
