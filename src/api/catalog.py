@@ -38,7 +38,7 @@ def get_catalog():
                 CASE 
                     WHEN potions_inventory.potion_id = 11 THEN 0
                     WHEN potions_inventory.potion_id = 5 THEN 0
-                    WHEN potions_inventory.potion_id = 10 THEN 0
+                    WHEN potions_inventory.potion_id = 18 THEN 0
                     ELSE 1
                 END, 
                 inventory DESC;

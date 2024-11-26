@@ -233,7 +233,6 @@ def get_bottle_plan():
 
         # Limit production to the per-potion cap, available capacity, and max inventory
         target_quantity = min(
-            23,
             max_bottles_possible, 
             production_limit - total_potion_made, 
             tier_cap - potion_quantities[potion.sku]
