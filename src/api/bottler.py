@@ -144,21 +144,23 @@ def get_bottle_plan():
         (60, 40, 0, 0): next(priority_counter),
         (95, 5, 0, 0): next(priority_counter),
         (30, 25, 45, 0): next(priority_counter),
-        (50, 50, 0, 0): next(priority_counter), # PURPLE
+        (50, 0, 50, 0): next(priority_counter), # PURPLE
         (0, 0, 100, 0): next(priority_counter)
     }
 
     sorted_potions = sorted(
-        potion_data,
-        key=lambda p: (
-            potion_priority.get(tuple([p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml]), float('inf')),  # Popularity priority
-            # 0 if p.num_dark_ml > 0 else 1,  # Special case
-            sum(1 for ml in [p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml] if ml > 0),  # Count of non-zero MLs
-            1 if [p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml] in [[0, 50, 50, 0], [0, 30, 70, 0]] else 0,  # Deprioritize specific potions
-            p.price,  # Price in ascending order - cheapest first
-            random.random()  # Random tie-breaking
+    potion_data,
+    key=lambda p: (
+        0 if (p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml) == (50, 50, 0, 0) else 1,  # Special case first
+        potion_priority.get((p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml), float('inf')),  # Popularity priority
+        sum(1 for ml in [p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml] if ml > 0),  # Non-zero ML count
+        1 if (p.num_red_ml, p.num_green_ml, p.num_blue_ml, p.num_dark_ml) in [(0, 50, 50, 0), (0, 30, 70, 0)] else 0,  # Deprioritize
+        p.price,  # Price in ascending order
+        random.random()  # Tie-breaker
         )
     )
+
+
     # sorted_potions = sorted(
     #     potion_data,
     #     key=lambda p: (
@@ -178,10 +180,10 @@ def get_bottle_plan():
     my_bottle_plan = []
     potion_quantities = {potion.sku: 0 for potion in sorted_potions}
 
-    
+    print(sorted_potions)
     # random.shuffle(sorted_potions) to change back
+    
     for potion in sorted_potions:
-        
         # Skip production if total inventory for this potion already exceeds the max inventory cap
         current_inventory = potion.inventory or 0
         if current_inventory >= max_inventory_per_potion:
@@ -231,6 +233,7 @@ def get_bottle_plan():
 
         # Limit production to the per-potion cap, available capacity, and max inventory
         target_quantity = min(
+            23,
             max_bottles_possible, 
             production_limit - total_potion_made, 
             tier_cap - potion_quantities[potion.sku]
